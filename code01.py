@@ -6,6 +6,8 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 import io
 
+from fpdf import FPDF 
+
 #外丸が勝手にいれたもの。まずはフォント対応
 import os
 from pathlib import Path
