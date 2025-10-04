@@ -6,6 +6,23 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 import io
 
+#外丸が勝手にいれたもの。まずはフォント対応
+import os
+from pathlib import Path
+# アプリケーションのルートディレクトリ（app.pyがある場所）を基準にする
+BASE_DIR = Path(__file__).resolve().parent
+# フォントファイルへの絶対パスを作成
+FONT_PATH = str(BASE_DIR / "IPAexGothic.ttf")
+# fpdf2の場合の例 (ReportLabでも同様)
+pdf.add_font("IPAexGothic", fname=FONT_PATH)
+
+#さらにPDF対応
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+# ... (パスは上記1.bの方法で取得)
+pdfmetrics.registerFont(TTFont('IPAexGothic', FONT_PATH))
+# フォントファミリーの登録（通常、ここでは省略されることが多い）
+
 # 日本語フォントの登録 (IPAexGothicを想定)
 # 実際にはTTFファイルをプロジェクト内に配置し、そのパスを指定してください
 try:
