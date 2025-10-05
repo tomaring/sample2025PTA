@@ -44,93 +44,172 @@ def convert_to_wareki(dt):
 def create_report_pdf(data):
     """
     入力データに基づいて事業報告書PDFを作成する (fpdf2バージョン)
-    data辞書のキー:
-    - 'report_date': dateオブジェクト
-    - 'department': 担当部署文字列
-    - 'business_reports': [{'date': str, 'content': str}] のリスト
-    - 'issues': str
-    - 'next_activities': [{'date': str, 'content': str}] のリスト
+    仕様書PDFのレイアウトを再現
     """
-    # MyFPDFのインスタンスを作成。__init__でフォントが登録される。
-    pdf = MyFPDF()
-    pdf.add_page() # 新しいページを追加
+    try:
+        pdf = MyFPDF()
+    except RuntimeError as e:
+        st.error(str(e))
+        return None
 
-    # PDF描画の設定
-    # fpdf2 は A4 サイズをデフォルトとするため、pagesizeの指定は不要
-    # PDFの座標系: 左上が (0,0)
+    pdf.add_page()
 
-    # 固定テキスト: ***運営委員会にて提出をお願いします***
-    pdf.set_xy(0, 10) # X, Y 座標を指定 (左上から10mm, 10mm)
-    pdf.write(5, "***運営委員会にて提出をお願いします***") # write(行の高さ, テキスト)
+    # --- ヘッダー部分 ---
+    # フォント設定
+    pdf.set_font("IPAexGothic", size=10)
+
+    # ***運営委員会にて提出をお願いします***
+    pdf.set_xy(10, 10)
+    pdf.cell(w=0, h=5, txt="***運営委員会にて提出をお願いします***", ln=1, align='C') # 中央揃え
 
     # タイトル: 事業内容報告書
     pdf.set_font("IPAexGothic", size=14)
-    pdf.set_xy(0, 20) # ページ上端から20mmの位置に移動
-    # w=210 (A4幅), h=10, txt="事業内容報告書", align='C' (中央揃え), ln=1 (次の描画を改行)
+    pdf.set_xy(0, pdf.get_y() + 5) # 中央揃え
     pdf.cell(w=210, h=10, txt="事業内容報告書", align='C', ln=1)
 
-    # 報告書作成日と担当部署
+    # 右上の日付
     pdf.set_font("IPAexGothic", size=10)
-    # 現在のY座標から相対的に配置したい場合は pdf.get_y() を使う
-    current_y = 35 # 仮の開始Y座標
+    pdf.set_xy(140, 30) # 令和7年9月2日の位置を調整
+    pdf.cell(w=60, h=5, txt="令和7年9月2日", ln=1, align='R') # 固定日付（仕様書通り）
+
+    # 学年 / 育成会本部 / 担当部署 の枠線とテキスト
+    box_start_x = 10
+    box_start_y = 40
+    box_width = 190
+    box_height = 25 # 学年, 育成会本部, 担当部署 を含む全体の高さ
+
+    pdf.set_xy(box_start_x, box_start_y)
+    pdf.set_fill_color(255, 255, 255) # 白
+    pdf.rect(box_start_x, box_start_y, box_width, box_height, 'DF') # 全体の枠
+
+    # 各項目の中線
+    # 学年と育成会本部
+    pdf.line(box_start_x, box_start_y + 10, box_start_x + box_width, box_start_y + 10) # 学年と育成会本部の中線
+
+    # 左側と右側を区切る縦線 (担当部署との間)
+    pdf.line(box_start_x + box_width * 0.7, box_start_y, box_start_x + box_width * 0.7, box_start_y + box_height)
+
+    # テキスト配置
+    pdf.set_font("IPAexGothic", size=10)
     
-    # 日付
-    pdf.set_xy(140, current_y)
-    # 仕様書に合わせて「令和7年9月2日」を固定で表示
-    # 動的に入力された日付を表示したい場合は convert_to_wareki(data['report_date']) を使う
-    pdf.write(5, convert_to_wareki(data['report_date'])) 
+    # 学年 (左上)
+    pdf.set_xy(box_start_x + 2, box_start_y + 2)
+    pdf.cell(w=box_width * 0.7 - 2, h=8, txt="学年", align='L')
 
-    # 学年
-    #pdf.set_xy(10, current_y + 10)
-    #pdf.write(5, "学年")
+    # 育成会本部 (左下)
+    pdf.set_xy(box_start_x + 2, box_start_y + 12)
+    pdf.cell(w=box_width * 0.7 - 2, h=10, txt="育成会本部", align='L')
     
-    # 育成会本部
-    #pdf.set_xy(10, current_y + 15)
-    #pdf.write(5, "育成会本部")
+    # 担当部署 (右上)
+    pdf.set_xy(box_start_x + box_width * 0.7 + 2, box_start_y + 2)
+    pdf.cell(w=box_width * 0.3 - 4, h=20, txt=data['department'], align='C')
 
-    # 担当部署
-    pdf.set_xy(0, current_y + 10) # 日付の下に配置
-    pdf.write(5, data['department']) # 入力された担当部署
 
-    # --- ここからレポート内容の描画 ---
-    # fpdf2 で仕様書のような罫線を引くには、pdf.rect() や pdf.line() を使って
-    # 手動で描画するか、専用のテーブル描画ロジックを組む必要があります。
-    # ここでは、まずテキストの配置に注力し、罫線は後で追加できるようにします。
+    # --- 事業内容報告 ---
+    section_margin_top = 5 # 上部マージン
+    # タイトル部分の枠線
+    y_current = box_start_y + box_height + section_margin_top
+    pdf.set_xy(box_start_x, y_current)
+    pdf.set_font("IPAexGothic", size=10, style='B') # 太字
+    pdf.cell(w=box_width, h=8, txt="事業内容報告", border=1, ln=1, align='L') # 枠付き
+    pdf.set_font("IPAexGothic", size=10) # 太字解除
 
-    # 各セクションの開始Y座標
-    y_start_sections = current_y + 30
+    # テーブルヘッダー
+    y_current = pdf.get_y()
+    pdf.set_xy(box_start_x, y_current)
+    pdf.set_font("IPAexGothic", size=9, style='B')
+    pdf.cell(w=box_width * 0.2, h=7, txt="日程", border=1, align='C')
+    pdf.cell(w=box_width * 0.8, h=7, txt="事業内容報告", border=1, ln=1, align='C')
+    pdf.set_font("IPAexGothic", size=9) # 太字解除
 
-    # 1. 事業内容報告
-    pdf.set_xy(10, y_start_sections)
-    pdf.write(5, "事業内容報告")
-    y_position = y_start_sections + 7
-    for item in data['business_reports']:
-        pdf.set_xy(20, y_position) # インデント
-        # multi_cell を使えば自動で改行される
-        pdf.multi_cell(w=180, h=5, txt=f"・ {item['date']}: {item['content']}")
-        y_position = pdf.get_y() # 最新のY座標を取得
+    # テーブル内容
+    y_current = pdf.get_y()
+    min_row_height = 10 # 各行の最小高さ
+    for i, item in enumerate(data['business_reports']):
+        # 日程セル
+        pdf.set_xy(box_start_x, y_current)
+        pdf.cell(w=box_width * 0.2, h=min_row_height, txt=item['date'], border=1, align='C', fill=0)
 
-    # 2. 活動の反省と課題
-    y_position += 10 # セクション間のスペース
-    pdf.set_xy(10, y_position)
-    pdf.write(5, "活動の反省と課題")
-    y_position += 7
-    pdf.set_xy(20, y_position)
-    pdf.multi_cell(w=180, h=5, txt=data['issues'])
-    y_position = pdf.get_y()
+        # 事業内容報告セル (multi_cellで自動改行)
+        # multi_cellはln=1を指定すると自動で次の行のy_currentを進める
+        # ただし、行の高さを先に計算する必要がある
+        text_w = box_width * 0.8
+        content_lines = pdf.get_string_width(item['content']) / text_w # おおよその行数
+        # 小数点以下切り上げ
+        num_lines = int(content_lines) + 1 if content_lines > 0 else 1 
+        current_row_height = max(min_row_height, num_lines * pdf.font_size * 1.2) # 適切な行高さを計算
 
-    # 3. 次回運営委員会までの活動予定
-    y_position += 10
-    pdf.set_xy(10, y_position)
-    pdf.write(5, "次回運営委員会までの活動予定")
-    y_position += 7
-    for item in data['next_activities']:
-        pdf.set_xy(20, y_position) # インデント
-        pdf.multi_cell(w=180, h=5, txt=f"・ {item['date']}: {item['content']}")
-        y_position = pdf.get_y()
+        # pdf.set_xy(box_start_x + box_width * 0.2, y_current)
+        # pdf.multi_cell(w=box_width * 0.8, h=pdf.font_size * 1.2, txt=item['content'], border=1, align='L')
+
+        # multi_cellとcellの組み合わせが難しいので、rectで枠を先に描いてからmulti_cell
+        pdf.rect(box_start_x + box_width * 0.2, y_current, box_width * 0.8, current_row_height)
+        pdf.set_xy(box_start_x + box_width * 0.2 + 1, y_current + 1) # マージンを考慮してテキスト開始位置を調整
+        pdf.multi_cell(w=box_width * 0.8 - 2, h=pdf.font_size * 1.2, txt=item['content'], align='L')
+
+        y_current = y_current + current_row_height # 次の行の開始Y座標
+
+
+    # --- 活動の反省と課題 ---
+    y_current += section_margin_top # 前のセクションからのマージン
+    pdf.set_xy(box_start_x, y_current)
+    pdf.set_font("IPAexGothic", size=10, style='B') # 太字
+    pdf.cell(w=box_width, h=8, txt="活動の反省と課題", border=1, ln=1, align='L')
+    pdf.set_font("IPAexGothic", size=10) # 太字解除
+
+    y_current = pdf.get_y()
+    # テキストエリアの内容をmulti_cellで表示
+    # 最小高さを確保しつつ、テキスト量に応じて高さが伸びるようにする
+    text_w = box_width - 2 # 左右マージン考慮
+    content_lines = pdf.get_string_width(data['issues']) / text_w
+    num_lines = int(content_lines) + 1 if content_lines > 0 else 1
+    issue_box_height = max(30, num_lines * pdf.font_size * 1.2) # 最小高30mm
+
+    pdf.rect(box_start_x, y_current, box_width, issue_box_height) # 枠を描画
+    pdf.set_xy(box_start_x + 1, y_current + 1) # テキスト開始位置を調整
+    pdf.multi_cell(w=box_width - 2, h=pdf.font_size * 1.2, txt=data['issues'], align='L')
+
+    y_current += issue_box_height
+
+
+    # --- 次回運営委員会までの活動予定 ---
+    y_current += section_margin_top
+    pdf.set_xy(box_start_x, y_current)
+    pdf.set_font("IPAexGothic", size=10, style='B') # 太字
+    pdf.cell(w=box_width, h=8, txt="次回運営委員会までの活動予定", border=1, ln=1, align='L')
+    pdf.set_font("IPAexGothic", size=10) # 太字解除
+
+    # テーブルヘッダー
+    y_current = pdf.get_y()
+    pdf.set_xy(box_start_x, y_current)
+    pdf.set_font("IPAexGothic", size=9, style='B')
+    pdf.cell(w=box_width * 0.2, h=7, txt="日程", border=1, align='C')
+    pdf.cell(w=box_width * 0.8, h=7, txt="活動予定", border=1, ln=1, align='C')
+    pdf.set_font("IPAexGothic", size=9) # 太字解除
+
+    # テーブル内容
+    y_current = pdf.get_y()
+    for i, item in enumerate(data['next_activities']):
+        # 日程セル
+        pdf.set_xy(box_start_x, y_current)
+        pdf.cell(w=box_width * 0.2, h=min_row_height, txt=item['date'], border=1, align='C', fill=0)
+
+        # 活動予定セル (multi_cellで自動改行)
+        text_w = box_width * 0.8
+        content_lines = pdf.get_string_width(item['content']) / text_w
+        num_lines = int(content_lines) + 1 if content_lines > 0 else 1
+        current_row_height = max(min_row_height, num_lines * pdf.font_size * 1.2)
+
+        pdf.rect(box_start_x + box_width * 0.2, y_current, box_width * 0.8, current_row_height)
+        pdf.set_xy(box_start_x + box_width * 0.2 + 1, y_current + 1)
+        pdf.multi_cell(w=box_width * 0.8 - 2, h=pdf.font_size * 1.2, txt=item['content'], align='L')
+
+        y_current = y_current + current_row_height
+
 
     # PDFをバイトストリームとして出力
     return io.BytesIO(pdf.output())
+
 
 # --- Streamlit UI の構築 ---
 st.set_page_config(layout="wide")
