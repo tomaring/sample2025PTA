@@ -2,6 +2,8 @@ import streamlit as st
 from datetime import date
 import io
 
+import base64
+
 # fpdf2 をインポート
 from fpdf import FPDF
 
@@ -234,10 +236,21 @@ if st.button("**入力完了**", key="submit_button"):
         st.success("PDFが生成されました！")
         st.subheader("プレビュー")
         # StreamlitでのPDFプレビュー (fpdf2はバイト列を返すのでそのまま)
-        st.components.v1.iframe(
-            pdf_buffer.getvalue(),
-            height=600,
-            width="100%"
+        #st.components.v1.iframe(
+        #    pdf_buffer.getvalue(),
+        #    height=600,
+        #    width="100%"
+        #)
+
+        # PDFのバイナリデータを取得
+        pdf_data_bytes = pdf_buffer.getvalue()
+        # Base64エンコード
+        base64_pdf = base64.b64encode(pdf_data_bytes).decode('utf-8')
+        # data: URIスキームとしてHTMLに埋め込む
+        pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="600px" type="application/pdf"></iframe>'
+        # StreamlitでHTMLとして表示
+        st.markdown(pdf_display, unsafe_allow_html=True)
+
         )
 
         st.markdown("---")
