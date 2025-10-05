@@ -71,7 +71,8 @@ def create_report_pdf(data):
     pdf.set_font("IPAexGothic", size=12)
     pdf.set_xy(140, 30) # 令和7年9月2日の位置を調整
     pdf.cell(60, 5, convert_to_wareki(data['report_date']), ln=1, align='R')
-'''
+    
+    '''
     # 学年 / 育成会本部 / 担当部署 の枠線とテキスト
     box_start_x = 10
     box_start_y = 40
@@ -103,12 +104,12 @@ def create_report_pdf(data):
     # 担当部署 (右上)
     pdf.set_xy(box_start_x + box_width * 0.7 + 2, box_start_y + 2)
     pdf.cell(w=box_width * 0.3 - 4, h=20, txt=data['department'], align='C')
-'''
+    '''
     pdf.set_font("IPAexGothic", size=20)
-    pdf.set_xy(10, 30) # 令和7年9月2日の位置を調整
+    pdf.set_xy(10, 30)
     pdf.cell(W=60, h=5, txt=data['department'], ln=1, align='R')
 
-
+    
     # --- 事業内容報告 ---
     section_margin_top = 5 # 上部マージン
     # タイトル部分の枠線
