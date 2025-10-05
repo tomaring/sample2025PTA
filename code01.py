@@ -60,8 +60,8 @@ def create_report_pdf(data):
     # PDFの座標系: 左上が (0,0)
 
     # 固定テキスト: ***運営委員会にて提出をお願いします***
-    pdf.set_xy(10, 10) # X, Y 座標を指定 (左上から10mm, 10mm)
-    pdf.write(5, "***運営委員会にて提出をお願いします***") # write(行の高さ, テキスト)
+    pdf.set_xy(0, 10) # X, Y 座標を指定 (左上から10mm, 10mm)
+    pdf.write(5, "***運営委員会にて提出をお願いします***", align='C') # write(行の高さ, テキスト)
 
     # タイトル: 事業内容報告書
     pdf.set_font("IPAexGothic", size=14)
@@ -78,18 +78,18 @@ def create_report_pdf(data):
     pdf.set_xy(140, current_y)
     # 仕様書に合わせて「令和7年9月2日」を固定で表示
     # 動的に入力された日付を表示したい場合は convert_to_wareki(data['report_date']) を使う
-    pdf.write(5, "令和7年9月2日") 
+    pdf.write(5, convert_to_wareki(data['report_date'])) 
 
     # 学年
-    pdf.set_xy(10, current_y + 10)
-    pdf.write(5, "学年")
+    #pdf.set_xy(10, current_y + 10)
+    #pdf.write(5, "学年")
     
     # 育成会本部
-    pdf.set_xy(10, current_y + 15)
-    pdf.write(5, "育成会本部")
+    #pdf.set_xy(10, current_y + 15)
+    #pdf.write(5, "育成会本部")
 
     # 担当部署
-    pdf.set_xy(140, current_y + 10) # 日付の下に配置
+    pdf.set_xy(0, current_y + 10) # 日付の下に配置
     pdf.write(5, data['department']) # 入力された担当部署
 
     # --- ここからレポート内容の描画 ---
