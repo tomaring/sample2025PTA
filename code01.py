@@ -194,7 +194,7 @@ def create_report_pdf(data):
 
 # --- Streamlit UI の構築 ---
 st.set_page_config(layout="wide")
-st.title("育成会事業報告書作成アプリ")
+st.title("事業報告書作成アプリ")
 
 # --- 3. 入力画面の要件 ---
 
