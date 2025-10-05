@@ -70,7 +70,7 @@ def create_report_pdf(data):
     # 右上の日付
     pdf.set_font("IPAexGothic", size=14)
     pdf.set_xy(10, 30) # 令和7年9月2日の位置を調整
-    pdf.cell(w=60, h=5, convert_to_wareki(data['report_date']), ln=1, align='R') # 固定日付（仕様書通り）
+    pdf.cell(60, 5, convert_to_wareki(data['report_date']), ln=1, align='R')
 
     '''# 学年 / 育成会本部 / 担当部署 の枠線とテキスト
     box_start_x = 10
