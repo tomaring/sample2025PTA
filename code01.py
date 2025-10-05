@@ -167,11 +167,11 @@ for i, report in enumerate(st.session_state.business_reports):
         if i > 0: # 最初の項目は削除できないようにする
             if st.button("削除", key=f"br_delete_{i}"):
                 st.session_state.business_reports.pop(i)
-                st.experimental_rerun() # 削除後にUIを再描画
+                st.rerun() # 削除後にUIを再描画
 
 if st.button("事業内容報告を追加", key="add_business_report_button"):
     st.session_state.business_reports.append({'date': '', 'content': ''})
-    st.experimental_rerun()
+    st.rerun()
 
 
 st.subheader("活動の反省と課題")
@@ -196,11 +196,11 @@ for i, activity in enumerate(st.session_state.next_activities):
         if i > 0: # 最初の項目は削除できないようにする
             if st.button("削除", key=f"na_delete_{i}"):
                 st.session_state.next_activities.pop(i)
-                st.experimental_rerun() # 削除後にUIを再描画
+                st.rerun() # 削除後にUIを再描画
 
 if st.button("活動予定を追加", key="add_next_activity_button"):
     st.session_state.next_activities.append({'date': '', 'content': ''})
-    st.experimental_rerun()
+    st.rerun()
 
 
 # --- 4. 機能要件 ---
@@ -277,4 +277,4 @@ if st.button("入力内容をクリア", key="clear_button"):
     # session_stateのすべてのキーを削除してリセット
     for key in list(st.session_state.keys()): # list() でコピーを作成してから削除
         del st.session_state[key]
-    st.experimental_rerun() # UIを再描画して初期状態に戻す
+    st.rerun() # UIを再描画して初期状態に戻す
