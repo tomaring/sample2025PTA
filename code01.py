@@ -236,11 +236,11 @@ if st.button("**入力完了**", key="submit_button"):
         st.success("PDFが生成されました！")
         st.subheader("プレビュー")
         # StreamlitでのPDFプレビュー (fpdf2はバイト列を返すのでそのまま)
-        #st.components.v1.iframe(
-        #    pdf_buffer.getvalue(),
-        #    height=600,
-        #    width="100%"
-        #)
+        st.components.v1.iframe(
+            pdf_buffer.getvalue(),
+            height=600,
+            width="100%"
+        )
 
         # PDFのバイナリデータを取得
         pdf_data_bytes = pdf_buffer.getvalue()
