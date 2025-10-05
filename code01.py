@@ -236,8 +236,8 @@ if st.button("**入力完了**", key="submit_button"):
         st.success("PDFが生成されました！")
         st.subheader("プレビュー")
 
-
-　　　　　# PDFのバイナリデータを取得
+        
+        # PDFのバイナリデータを取得
         pdf_data_bytes = pdf_buffer.getvalue()
 
         # Base64エンコード
