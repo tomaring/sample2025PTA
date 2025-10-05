@@ -110,14 +110,14 @@ def create_report_pdf(data):
     # タイトル部分の枠線
     y_current = box_start_y + box_height + section_margin_top
     pdf.set_xy(box_start_x, y_current)
-    pdf.set_font("IPAexGothic", size=10, style='B') # 太字
+    pdf.set_font("IPAexGothic", size=10) # 太字
     pdf.cell(w=box_width, h=8, txt="事業内容報告", border=1, ln=1, align='L') # 枠付き
     pdf.set_font("IPAexGothic", size=10) # 太字解除
 
     # テーブルヘッダー
     y_current = pdf.get_y()
     pdf.set_xy(box_start_x, y_current)
-    pdf.set_font("IPAexGothic", size=9, style='B')
+    pdf.set_font("IPAexGothic", size=9)
     pdf.cell(w=box_width * 0.2, h=7, txt="日程", border=1, align='C')
     pdf.cell(w=box_width * 0.8, h=7, txt="事業内容報告", border=1, ln=1, align='C')
     pdf.set_font("IPAexGothic", size=9) # 太字解除
@@ -153,7 +153,7 @@ def create_report_pdf(data):
     # --- 活動の反省と課題 ---
     y_current += section_margin_top # 前のセクションからのマージン
     pdf.set_xy(box_start_x, y_current)
-    pdf.set_font("IPAexGothic", size=10, style='B') # 太字
+    pdf.set_font("IPAexGothic", size=10) # 太字
     pdf.cell(w=box_width, h=8, txt="活動の反省と課題", border=1, ln=1, align='L')
     pdf.set_font("IPAexGothic", size=10) # 太字解除
 
@@ -175,14 +175,14 @@ def create_report_pdf(data):
     # --- 次回運営委員会までの活動予定 ---
     y_current += section_margin_top
     pdf.set_xy(box_start_x, y_current)
-    pdf.set_font("IPAexGothic", size=10, style='B') # 太字
+    pdf.set_font("IPAexGothic", size=10) # 太字
     pdf.cell(w=box_width, h=8, txt="次回運営委員会までの活動予定", border=1, ln=1, align='L')
     pdf.set_font("IPAexGothic", size=10) # 太字解除
 
     # テーブルヘッダー
     y_current = pdf.get_y()
     pdf.set_xy(box_start_x, y_current)
-    pdf.set_font("IPAexGothic", size=9, style='B')
+    pdf.set_font("IPAexGothic", size=9)
     pdf.cell(w=box_width * 0.2, h=7, txt="日程", border=1, align='C')
     pdf.cell(w=box_width * 0.8, h=7, txt="活動予定", border=1, ln=1, align='C')
     pdf.set_font("IPAexGothic", size=9) # 太字解除
