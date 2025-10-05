@@ -235,12 +235,36 @@ if st.button("**入力完了**", key="submit_button"):
 
         st.success("PDFが生成されました！")
         st.subheader("プレビュー")
-        # StreamlitでのPDFプレビュー (fpdf2はバイト列を返すのでそのまま)
-        st.components.v1.iframe(
-            pdf_buffer.getvalue(),
-            height=600,
-            width="100%"
+
+
+                # PDFのバイナリデータを取得
+        pdf_data_bytes = pdf_buffer.getvalue()
+        
+        # Base64エンコードし、ASCIIとしてデコード
+        # Base64はASCII文字セットのみを使用するため、UTF-8ではなくASCIIでデコード可能
+        try:
+            base64_pdf = base64.b64encode(pdf_data_bytes).decode('ascii') # ここを変更
+        except UnicodeDecodeError as e:
+            st.error(f"PDFデータtoBase64エンコード時にエラー: {e}")
+            st.error("これはPDFデータ自体に問題がある可能性があります。ダウンロードしたPDFファイルが正常に開けるか確認してください。")
+            st.stop()
+            
+        pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="600px" type="application/pdf"></iframe>'
+        st.markdown(pdf_display, unsafe_allow_html=True)
+        
+        st.markdown("---")
+        st.subheader("PDF保存")
+        st.write("内容を確認しましたか？PDFデータを保存しますか？")
+        
+        # ダウンロードボタンのデータは直接バイナリを渡す
+        st.download_button(
+            label="**PDFデータを保存**",
+            data=pdf_data_bytes, # ここは変更なし
+            file_name=file_name,
+            mime="application/pdf",
+            key="download_pdf_button"
         )
+
 
         st.markdown("---")
         st.subheader("PDF保存")
