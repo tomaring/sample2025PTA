@@ -78,34 +78,6 @@ def create_report_pdf(data):
     box_width = 190
     box_height = 25 # 学年, 育成会本部, 担当部署 を含む全体の高さ
 
-    '''
-    pdf.set_xy(box_start_x, box_start_y)
-    pdf.set_fill_color(255, 255, 255) # 白
-    pdf.rect(box_start_x, box_start_y, box_width, box_height, 'DF') # 全体の枠
-
-    # 各項目の中線
-    # 学年と育成会本部
-    pdf.line(box_start_x, box_start_y + 10, box_start_x + box_width, box_start_y + 10) # 学年と育成会本部の中線
-
-    # 左側と右側を区切る縦線 (担当部署との間)
-    pdf.line(box_start_x + box_width * 0.7, box_start_y, box_start_x + box_width * 0.7, box_start_y + box_height)
-
-    # テキスト配置
-    pdf.set_font("IPAexGothic", size=10)
-    
-    # 学年 (左上)
-    pdf.set_xy(box_start_x + 2, box_start_y + 2)
-    pdf.cell(w=box_width * 0.7 - 2, h=8, txt="学年", align='L')
-
-    # 育成会本部 (左下)
-    pdf.set_xy(box_start_x + 2, box_start_y + 12)
-    pdf.cell(w=box_width * 0.7 - 2, h=10, txt="育成会本部", align='L')
-    
-    # 担当部署 (右上)
-    pdf.set_xy(box_start_x + box_width * 0.7 + 2, box_start_y + 2)
-    pdf.cell(w=box_width * 0.3 - 4, h=20, txt=data['department'], align='C')
-
-    '''
     # テキスト配置
     pdf.set_font("IPAexGothic", size=20)
     # 担当部署 (左寄せ),X座標(10)とY座標(40)は、元の枠の位置を参考に設定します。
