@@ -242,17 +242,6 @@ if st.button("**入力完了**", key="submit_button"):
             width="100%"
         )
 
-        # PDFのバイナリデータを取得
-        pdf_data_bytes = pdf_buffer.getvalue()
-        # Base64エンコード
-        base64_pdf = base64.b64encode(pdf_data_bytes).decode('utf-8')
-        # data: URIスキームとしてHTMLに埋め込む
-        pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="600px" type="application/pdf"></iframe>'
-        # StreamlitでHTMLとして表示
-        st.markdown(pdf_display, unsafe_allow_html=True)
-
-        )
-
         st.markdown("---")
         st.subheader("PDF保存")
         st.write("内容を確認しましたか？PDFデータを保存しますか？")
