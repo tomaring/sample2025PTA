@@ -107,7 +107,7 @@ def create_report_pdf(data):
 
     '''
     # テキスト配置
-    pdf.set_font("IPAexGothic", size=10)
+    pdf.set_font("IPAexGothic", size=20)
     # 担当部署 (左寄せ),X座標(10)とY座標(40)は、元の枠の位置を参考に設定します。
     pdf.set_xy(10, 40) 
     # セルに出力 (w=0でテキストの幅に自動調整、ln=1で出力後改行、align='L'で左寄せ)
