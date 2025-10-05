@@ -106,7 +106,7 @@ def create_report_pdf(data):
 '''
     pdf.set_font("IPAexGothic", size=20)
     pdf.set_xy(10, 30) # 令和7年9月2日の位置を調整
-    pdf.cell(60, 5, convert_to_wareki(data['report_date']), ln=1, align='R')
+    pdf.cell(W=60, h=5, txt=data['department'], ln=1, align='R')
 
 
     # --- 事業内容報告 ---
