@@ -63,16 +63,16 @@ def create_report_pdf(data):
     pdf.cell(w=0, h=5, txt="***運営委員会にて提出をお願いします***", ln=1, align='C') # 中央揃え
 
     # タイトル: 事業内容報告書
-    pdf.set_font("IPAexGothic", size=24)
+    pdf.set_font("IPAexGothic", size=14)
     pdf.set_xy(0, pdf.get_y() + 5) # 中央揃え
     pdf.cell(w=210, h=10, txt="事業内容報告書", align='C', ln=1)
 
     # 右上の日付
-    pdf.set_font("IPAexGothic", size=14)
-    pdf.set_xy(10, 30) # 令和7年9月2日の位置を調整
-    pdf.cell(60, 5, convert_to_wareki(data['report_date']), ln=1, align='R')
+    pdf.set_font("IPAexGothic", size=10)
+    pdf.set_xy(140, 30) # 令和7年9月2日の位置を調整
+    pdf.cell(w=60, h=5, txt="令和7年9月2日", ln=1, align='R') # 固定日付（仕様書通り）
 
-    '''# 学年 / 育成会本部 / 担当部署 の枠線とテキスト
+    # 学年 / 育成会本部 / 担当部署 の枠線とテキスト
     box_start_x = 10
     box_start_y = 40
     box_width = 190
@@ -88,12 +88,10 @@ def create_report_pdf(data):
 
     # 左側と右側を区切る縦線 (担当部署との間)
     pdf.line(box_start_x + box_width * 0.7, box_start_y, box_start_x + box_width * 0.7, box_start_y + box_height)
-    '''
-    
-    # テキスト配置
-    pdf.set_font("IPAexGothic", size=20)
 
-    '''
+    # テキスト配置
+    pdf.set_font("IPAexGothic", size=10)
+    
     # 学年 (左上)
     pdf.set_xy(box_start_x + 2, box_start_y + 2)
     pdf.cell(w=box_width * 0.7 - 2, h=8, txt="学年", align='L')
@@ -101,10 +99,9 @@ def create_report_pdf(data):
     # 育成会本部 (左下)
     pdf.set_xy(box_start_x + 2, box_start_y + 12)
     pdf.cell(w=box_width * 0.7 - 2, h=10, txt="育成会本部", align='L')
-    '''
     
     # 担当部署 (右上)
-    pdf.set_xy(10,50)
+    pdf.set_xy(box_start_x + box_width * 0.7 + 2, box_start_y + 2)
     pdf.cell(w=box_width * 0.3 - 4, h=20, txt=data['department'], align='C')
 
 
@@ -113,14 +110,14 @@ def create_report_pdf(data):
     # タイトル部分の枠線
     y_current = box_start_y + box_height + section_margin_top
     pdf.set_xy(box_start_x, y_current)
-    pdf.set_font("IPAexGothic", size=10) # 太字
+    pdf.set_font("IPAexGothic", size=10, style='B') # 太字
     pdf.cell(w=box_width, h=8, txt="事業内容報告", border=1, ln=1, align='L') # 枠付き
     pdf.set_font("IPAexGothic", size=10) # 太字解除
 
     # テーブルヘッダー
     y_current = pdf.get_y()
     pdf.set_xy(box_start_x, y_current)
-    pdf.set_font("IPAexGothic", size=9)
+    pdf.set_font("IPAexGothic", size=9, style='B')
     pdf.cell(w=box_width * 0.2, h=7, txt="日程", border=1, align='C')
     pdf.cell(w=box_width * 0.8, h=7, txt="事業内容報告", border=1, ln=1, align='C')
     pdf.set_font("IPAexGothic", size=9) # 太字解除
@@ -156,7 +153,7 @@ def create_report_pdf(data):
     # --- 活動の反省と課題 ---
     y_current += section_margin_top # 前のセクションからのマージン
     pdf.set_xy(box_start_x, y_current)
-    pdf.set_font("IPAexGothic", size=10) # 太字
+    pdf.set_font("IPAexGothic", size=10, style='B') # 太字
     pdf.cell(w=box_width, h=8, txt="活動の反省と課題", border=1, ln=1, align='L')
     pdf.set_font("IPAexGothic", size=10) # 太字解除
 
@@ -178,14 +175,14 @@ def create_report_pdf(data):
     # --- 次回運営委員会までの活動予定 ---
     y_current += section_margin_top
     pdf.set_xy(box_start_x, y_current)
-    pdf.set_font("IPAexGothic", size=10) # 太字
+    pdf.set_font("IPAexGothic", size=10, style='B') # 太字
     pdf.cell(w=box_width, h=8, txt="次回運営委員会までの活動予定", border=1, ln=1, align='L')
     pdf.set_font("IPAexGothic", size=10) # 太字解除
 
     # テーブルヘッダー
     y_current = pdf.get_y()
     pdf.set_xy(box_start_x, y_current)
-    pdf.set_font("IPAexGothic", size=9)
+    pdf.set_font("IPAexGothic", size=9, style='B')
     pdf.cell(w=box_width * 0.2, h=7, txt="日程", border=1, align='C')
     pdf.cell(w=box_width * 0.8, h=7, txt="活動予定", border=1, ln=1, align='C')
     pdf.set_font("IPAexGothic", size=9) # 太字解除
