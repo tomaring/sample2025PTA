@@ -1,0 +1,11 @@
+# プロジェクトのルートディレクトリに移動
+cd your_project_folder
+
+# フォントファイルをプロジェクトに追加（もしfonts/サブディレクトリに置くなら fonts/IPAexGothic.ttf）
+git add IPAexGothic.ttf 
+
+# 変更をコミット
+git commit -m "Add IPAexGothic font file for PDF generation"
+
+# GitHubにプッシュ
+git push origin main # あるいは git push origin master
