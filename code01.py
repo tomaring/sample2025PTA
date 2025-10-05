@@ -1,7 +1,6 @@
 import streamlit as st
 from datetime import date
 import io
-
 import base64
 
 # fpdf2 をインポート
@@ -51,83 +50,145 @@ def create_report_pdf(data):
     - 'issues': str
     - 'next_activities': [{'date': str, 'content': str}] のリスト
     """
-    # MyFPDFのインスタンスを作成。__init__でフォントが登録される。
     pdf = MyFPDF()
-    pdf.add_page() # 新しいページを追加
+    pdf.add_page()
 
     # PDF描画の設定
-    # fpdf2 は A4 サイズをデフォルトとするため、pagesizeの指定は不要
-    # PDFの座標系: 左上が (0,0)
+    pdf.set_auto_page_break(True, margin=15) # 自動改ページと下マージン
+    pdf.set_line_width(0.4) # 罫線の太さ
 
     # 固定テキスト: ***運営委員会にて提出をお願いします***
-    pdf.set_xy(10, 10) # X, Y 座標を指定 (左上から10mm, 10mm)
-    pdf.write(5, "***運営委員会にて提出をお願いします***") # write(行の高さ, テキスト)
+    pdf.set_font("IPAexGothic", size=10)
+    pdf.set_xy(10, 10)
+    pdf.write(5, "***運営委員会にて提出をお願いします***")
 
     # タイトル: 事業内容報告書
     pdf.set_font("IPAexGothic", size=14)
-    pdf.set_xy(0, 20) # ページ上端から20mmの位置に移動
-    # w=210 (A4幅), h=10, txt="事業内容報告書", align='C' (中央揃え), ln=1 (次の描画を改行)
+    pdf.set_xy(0, 20)
     pdf.cell(w=210, h=10, txt="事業内容報告書", align='C', ln=1)
 
-    # 報告書作成日と担当部署
-    pdf.set_font("IPAexGothic", size=10)
-    # 現在のY座標から相対的に配置したい場合は pdf.get_y() を使う
-    current_y = 35 # 仮の開始Y座標
+    # 報告書作成日と担当部署のエリア
+    # X座標の開始点、Y座標の開始点、幅、高さ
+    area_x = 10
+    area_y = 35
+    area_width = 190 # A4の幅-左右マージン
+    # 高さはこの時点では固定値で定義し、後で内容に合わせて調整または描画
     
-    # 日付
-    pdf.set_xy(140, current_y)
-    # 仕様書に合わせて「令和7年9月2日」を固定で表示
-    # 動的に入力された日付を表示したい場合は convert_to_wareki(data['report_date']) を使う
+    pdf.set_font("IPAexGothic", size=10)
+    
+    # 報告書作成日 (固定で令和7年9月2日)
+    pdf.set_xy(140, area_y)
     pdf.write(5, "令和7年9月2日") 
 
     # 学年
-    pdf.set_xy(10, current_y + 10)
-    pdf.write(5, "学年")
-    
+    pdf.set_xy(20, area_y + 10) # 添付画像に合わせてX座標を調整
+    pdf.cell(w=50, h=7, txt="学年", border='B') # 下線のみ
+
     # 育成会本部
-    pdf.set_xy(10, current_y + 15)
-    pdf.write(5, "育成会本部")
+    pdf.set_xy(20, area_y + 17) # 学年の下
+    pdf.cell(w=50, h=7, txt="育成会本部", border='B') # 下線のみ
 
     # 担当部署
-    pdf.set_xy(140, current_y + 10) # 日付の下に配置
-    pdf.write(5, data['department']) # 入力された担当部署
+    pdf.set_xy(140, area_y + 17) # 日付の下、育成会本部の右
+    pdf.write(5, data['department'])
 
-    # --- ここからレポート内容の描画 ---
-    # fpdf2 で仕様書のような罫線を引くには、pdf.rect() や pdf.line() を使って
-    # 手動で描画するか、専用のテーブル描画ロジックを組む必要があります。
-    # ここでは、まずテキストの配置に注力し、罫線は後で追加できるようにします。
 
-    # 各セクションの開始Y座標
-    y_start_sections = current_y + 30
+    # --- 事業内容報告テーブル ---
+    # ヘッダーの定義
+    y_start_business_report = pdf.get_y() + 15 # 現在のY座標から開始
+    pdf.set_xy(10, y_start_business_report)
+    pdf.set_font("IPAexGothic", 'B', size=10) # ヘッダーを太字に
+    pdf.set_fill_color(240, 240, 240) # ヘッダーの背景色 (任意)
 
-    # 1. 事業内容報告
-    pdf.set_xy(10, y_start_sections)
-    pdf.write(5, "事業内容報告")
-    y_position = y_start_sections + 7
+    # ヘッダーセル
+    pdf.cell(w=25, h=8, txt="日程", border=1, align='C', fill=True)
+    pdf.cell(w=165, h=8, txt="事業内容報告", border=1, align='C', ln=1, fill=True)
+
+    pdf.set_font("IPAexGothic", size=10) # 内容は通常フォントに戻す
+
+    # 内容の描画
+    # multi_cellを使用するため、各行の高さを動的に調整する
+    business_report_start_y = pdf.get_y() # 各行の開始Y座標を記録
     for item in data['business_reports']:
-        pdf.set_xy(20, y_position) # インデント
-        # multi_cell を使えば自動で改行される
-        pdf.multi_cell(w=180, h=5, txt=f"・ {item['date']}: {item['content']}")
-        y_position = pdf.get_y() # 最新のY座標を取得
+        # 日程セル (高さを後で決定するため、ここでは描画しない)
+        # multi_cellの高さ計算のために一時的に設定
+        pdf.set_xy(35, pdf.get_y())
+        temp_content_y = pdf.get_y() # コンテンツ描画前のY座標を保持
+        # multi_cellは自動改行し、ln=1で次の描画を改行位置から開始する
+        pdf.multi_cell(w=165, h=6, txt=item['content'], border=0, align='L', ln=1)
+        content_height = pdf.get_y() - temp_content_y # contentによって消費された高さ
 
-    # 2. 活動の反省と課題
-    y_position += 10 # セクション間のスペース
-    pdf.set_xy(10, y_position)
-    pdf.write(5, "活動の反省と課題")
-    y_position += 7
-    pdf.set_xy(20, y_position)
-    pdf.multi_cell(w=180, h=5, txt=data['issues'])
-    y_position = pdf.get_y()
+        # 日程セルを正確な高さで描画
+        pdf.set_xy(10, temp_content_y) # 元のY座標に戻す
+        pdf.cell(w=25, h=content_height, txt=item['date'], border='LRB', align='C') # 左右下線のみ
+        
+        # content_cellの右線と底線も描画 (multi_cellがln=1で改行しているので不要だが、念のため)
+        pdf.set_xy(35, temp_content_y)
+        pdf.multi_cell(w=165, h=6, txt=item['content'], border='RB', align='L', ln=1) # 右下線のみ
 
-    # 3. 次回運営委員会までの活動予定
-    y_position += 10
-    pdf.set_xy(10, y_position)
-    pdf.write(5, "次回運営委員会までの活動予定")
-    y_position += 7
+    # 罫線が描画されてない部分を修正
+    if not data['business_reports']:
+        # データがない場合も空のセルを描画して枠線は維持
+        pdf.cell(w=25, h=20, txt="", border=1, align='C')
+        pdf.cell(w=165, h=20, txt="", border=1, align='L', ln=1)
+    
+    business_report_end_y = pdf.get_y() # 事業内容報告セクションの終了Y座標
+
+    # --- 活動の反省と課題テーブル ---
+    y_start_issues = business_report_end_y + 10
+    pdf.set_xy(10, y_start_issues)
+    pdf.set_font("IPAexGothic", 'B', size=10)
+    pdf.cell(w=190, h=8, txt="活動の反省と課題", border=1, align='C', ln=1, fill=True)
+    pdf.set_font("IPAexGothic", size=10)
+
+    # multi_cellで内容を描画し、高さを取得
+    issues_start_y = pdf.get_y()
+    pdf.set_xy(10, issues_start_y)
+    # 適切な高さを確保するため、内容が空でも最低限の高さを設定
+    if not data['issues'].strip():
+        # 内容がない場合でも最低限の高さを確保
+        issues_height = 30 # 例: 3行分の高さ
+        pdf.multi_cell(w=190, h=6, txt="(次年度以降の改善材料になりますので詳細にお願いします)", border='LRB', align='L')
+    else:
+        # プレースホルダーの文字数も考慮して高さを取得
+        # まずプレースホルダー文字なしで高さを計算
+        pdf.multi_cell(w=190, h=6, txt=data['issues'], border=0, align='L') # 枠線なしで高さを計算
+        actual_issues_height = pdf.get_y() - issues_start_y
+        pdf.set_xy(10, issues_start_y) # Y座標を戻す
+        # 最低高さを考慮
+        issues_height = max(actual_issues_height, 20) # 最低20mmの高さ
+
+        # 正しい高さで枠線と内容を描画
+        pdf.multi_cell(w=190, h=6, txt=data['issues'], border='LRB', align='L') # 左右下線のみ
+
+
+    issues_end_y = pdf.get_y() # 活動の反省と課題セクションの終了Y座標
+
+    # --- 次回運営委員会までの活動予定テーブル ---
+    y_start_next_activities = issues_end_y + 10
+    pdf.set_xy(10, y_start_next_activities)
+    pdf.set_font("IPAexGothic", 'B', size=10)
+    pdf.cell(w=190, h=8, txt="次回運営委員会までの活動予定", border=1, align='C', ln=1, fill=True)
+    pdf.set_font("IPAexGothic", size=10)
+
+    next_activities_start_y = pdf.get_y()
     for item in data['next_activities']:
-        pdf.set_xy(20, y_position) # インデント
-        pdf.multi_cell(w=180, h=5, txt=f"・ {item['date']}: {item['content']}")
-        y_position = pdf.get_y()
+        pdf.set_xy(35, pdf.get_y())
+        temp_content_y = pdf.get_y()
+        pdf.multi_cell(w=165, h=6, txt=item['content'], border=0, align='L', ln=1)
+        content_height = pdf.get_y() - temp_content_y
+
+        pdf.set_xy(10, temp_content_y)
+        pdf.cell(w=25, h=content_height, txt=item['date'], border='LRB', align='C')
+        
+        pdf.set_xy(35, temp_content_y)
+        pdf.multi_cell(w=165, h=6, txt=item['content'], border='RB', align='L', ln=1)
+    
+    if not data['next_activities']:
+        # データがない場合も空のセルを描画して枠線は維持
+        pdf.cell(w=25, h=20, txt="", border=1, align='C')
+        pdf.cell(w=165, h=20, txt="", border=1, align='L', ln=1)
+
 
     # PDFをバイトストリームとして出力
     return io.BytesIO(pdf.output())
@@ -135,8 +196,6 @@ def create_report_pdf(data):
 # --- Streamlit UI の構築 ---
 st.set_page_config(layout="wide")
 st.title("育成会事業報告書作成アプリ")
-
-# --- 3. 入力画面の要件 ---
 
 st.header("入力項目")
 
@@ -155,7 +214,6 @@ departments = [
 selected_department = st.selectbox("担当部署", departments, key="department_select")
 
 st.subheader("事業内容報告")
-# 初期表示は最低1セット。st.session_state を使用して状態を保持
 if 'business_reports' not in st.session_state:
     st.session_state.business_reports = [{'date': '', 'content': ''}]
 
@@ -166,26 +224,31 @@ for i, report in enumerate(st.session_state.business_reports):
     with cols[1]:
         report['content'] = st.text_area(f"事業内容報告 {i+1}", value=report['content'], key=f"br_content_{i}", height=50)
     with cols[2]:
-        if i > 0: # 最初の項目は削除できないようにする
+        if i > 0:
             if st.button("削除", key=f"br_delete_{i}"):
                 st.session_state.business_reports.pop(i)
-                st.rerun() # 削除後にUIを再描画
+                st.rerun()
 
 if st.button("事業内容報告を追加", key="add_business_report_button"):
     st.session_state.business_reports.append({'date': '', 'content': ''})
     st.rerun()
 
-
 st.subheader("活動の反省と課題")
 issues = st.text_area(
     "活動の反省と課題 (次年度以降の改善材料になりますので詳細にお願いします)",
+    value="(次年度以降の改善材料になりますので詳細にお願いします)", # プレースホルダーとして初期値を設定
     height=150,
     key="issues_text_area"
 )
+# 初期値がプレースホルダーの場合、PDF出力時には空として扱う
+if issues == "(次年度以降の改善材料になりますので詳細にお願いします)":
+    issues_for_pdf = ""
+else:
+    issues_for_pdf = issues
+
 
 st.subheader("次回運営委員会までの活動予定")
-# 初期表示は最低1セット
-if 'next_activities' not in st.session_state:
+if 'next_activities' not in st.st.session_state:
     st.session_state.next_activities = [{'date': '', 'content': ''}]
 
 for i, activity in enumerate(st.session_state.next_activities):
@@ -195,38 +258,45 @@ for i, activity in enumerate(st.session_state.next_activities):
     with cols[1]:
         activity['content'] = st.text_area(f"活動予定 {i+1}", value=activity['content'], key=f"na_content_{i}", height=50)
     with cols[2]:
-        if i > 0: # 最初の項目は削除できないようにする
+        if i > 0:
             if st.button("削除", key=f"na_delete_{i}"):
                 st.session_state.next_activities.pop(i)
-                st.rerun() # 削除後にUIを再描画
+                st.rerun()
 
 if st.button("活動予定を追加", key="add_next_activity_button"):
     st.session_state.next_activities.append({'date': '', 'content': ''})
     st.rerun()
 
-
-# --- 4. 機能要件 ---
-
 st.markdown("---")
-# 「入力完了」ボタン
 if st.button("**入力完了**", key="submit_button"):
     # エラー処理: 必須項目チェック
-    # 各項目が空でないことを確認
     if not selected_department:
         st.warning("担当部署を選択してください。")
+    # 事業内容報告の必須チェック
     elif not all(item['date'].strip() and item['content'].strip() for item in st.session_state.business_reports if item['date'] or item['content']):
-        st.warning("事業内容報告の日程と内容をすべて入力するか、不要な行を削除してください。")
-    elif not issues.strip():
+        # 空の行は無視し、入力がある行は両方必須とする
+        valid_br_entries = [item for item in st.session_state.business_reports if item['date'] or item['content']]
+        if valid_br_entries and not all(item['date'].strip() and item['content'].strip() for item in valid_br_entries):
+            st.warning("事業内容報告の日程と内容をすべて入力するか、不要な行を削除してください。")
+        elif not valid_br_entries: # 全て空の場合も警告
+            st.warning("事業内容報告を入力してください。")
+    # 活動の反省と課題の必須チェック (プレースホルダーも考慮)
+    elif not issues_for_pdf.strip(): # PDF出力用の変数をチェック
         st.warning("活動の反省と課題を入力してください。")
+    # 次回活動予定の必須チェック
     elif not all(item['date'].strip() and item['content'].strip() for item in st.session_state.next_activities if item['date'] or item['content']):
-        st.warning("次回活動予定の日程と内容をすべて入力するか、不要な行を削除してください。")
+        valid_na_entries = [item for item in st.st.session_state.next_activities if item['date'] or item['content']]
+        if valid_na_entries and not all(item['date'].strip() and item['content'].strip() for item in valid_na_entries):
+            st.warning("次回活動予定の日程と内容をすべて入力するか、不要な行を削除してください。")
+        elif not valid_na_entries: # 全て空の場合も警告
+            st.warning("次回活動予定を入力してください。")
     else:
         # PDF生成データ準備
         report_data = {
             'report_date': report_date,
             'department': selected_department,
             'business_reports': st.session_state.business_reports,
-            'issues': issues,
+            'issues': issues_for_pdf, # プレースホルダー除去後の値を使用
             'next_activities': st.session_state.next_activities,
         }
 
@@ -236,42 +306,26 @@ if st.button("**入力完了**", key="submit_button"):
         st.success("PDFが生成されました！")
         st.subheader("プレビュー")
 
-        
-        # PDFのバイナリデータを取得
         pdf_data_bytes = pdf_buffer.getvalue()
-
-        # Base64エンコード
-        # base64エンコードされた文字列は必ずASCII文字なので、decode('ascii')で安全に変換
         base64_pdf = base64.b64encode(pdf_data_bytes).decode('ascii')
-
-        # data: URIスキームとしてHTMLの<iframe>タグに埋め込む
         pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="600px" type="application/pdf"></iframe>'
-
-        # StreamlitでHTMLとして表示
-        # unsafe_allow_html=True は必須
         st.markdown(pdf_display, unsafe_allow_html=True)
-
 
         st.markdown("---")
         st.subheader("PDF保存")
         st.write("内容を確認しましたか？PDFデータを保存しますか？")
 
-        # ファイル名生成
-        wareki_year_str = convert_to_wareki(report_date).split('年')[0] # 例: "令和7"
+        wareki_year_str = convert_to_wareki(report_date).split('年')[0]
         wareki_prefix = ""
         wareki_num = ""
-        # 漢字部分と数字部分を分離
         for char in wareki_year_str:
-            if '一' <= char <= '九' or '〇' <= char <= '九' or '０' <= char <= '９': # 漢数字や全角数字も考慮
+            if '一' <= char <= '九' or '〇' <= char <= '九' or '０' <= char <= '９':
                 wareki_num += str(char)
             else:
                 wareki_prefix += char
-
-        # 数字を半角に変換 (全角数字対策)
         wareki_num = wareki_num.replace('〇', '0').replace('一', '1').replace('二', '2').replace('三', '3').replace('四', '4').replace('五', '5').replace('六', '6').replace('七', '7').replace('八', '8').replace('九', '9')
-        wareki_num = "".join(filter(str.isdigit, wareki_num)) # 半角数字以外を除去
-
-        final_wareki_year_tag = f"R{wareki_num}" if wareki_num else f"{report_date.year}" # 数字がなければ西暦を使用
+        wareki_num = "".join(filter(str.isdigit, wareki_num))
+        final_wareki_year_tag = f"R{wareki_num}" if wareki_num else f"{report_date.year}"
 
         file_month = report_date.month
         file_name = f"{final_wareki_year_tag}.{file_month:02d}育成会事業報告書_{selected_department}.pdf"
@@ -284,9 +338,7 @@ if st.button("**入力完了**", key="submit_button"):
             key="download_pdf_button"
         )
 
-# 任意で「入力内容をクリア」ボタン
 if st.button("入力内容をクリア", key="clear_button"):
-    # session_stateのすべてのキーを削除してリセット
-    for key in list(st.session_state.keys()): # list() でコピーを作成してから削除
+    for key in list(st.session_state.keys()):
         del st.session_state[key]
-    st.rerun() # UIを再描画して初期状態に戻す
+    st.rerun()
