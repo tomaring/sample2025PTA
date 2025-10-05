@@ -237,33 +237,19 @@ if st.button("**入力完了**", key="submit_button"):
         st.subheader("プレビュー")
 
 
-                # PDFのバイナリデータを取得
+　　　　　# PDFのバイナリデータを取得
         pdf_data_bytes = pdf_buffer.getvalue()
-        
-        # Base64エンコードし、ASCIIとしてデコード
-        # Base64はASCII文字セットのみを使用するため、UTF-8ではなくASCIIでデコード可能
-        try:
-            base64_pdf = base64.b64encode(pdf_data_bytes).decode('ascii') # ここを変更
-        except UnicodeDecodeError as e:
-            st.error(f"PDFデータtoBase64エンコード時にエラー: {e}")
-            st.error("これはPDFデータ自体に問題がある可能性があります。ダウンロードしたPDFファイルが正常に開けるか確認してください。")
-            st.stop()
-            
+
+        # Base64エンコード
+        # base64エンコードされた文字列は必ずASCII文字なので、decode('ascii')で安全に変換
+        base64_pdf = base64.b64encode(pdf_data_bytes).decode('ascii')
+
+        # data: URIスキームとしてHTMLの<iframe>タグに埋め込む
         pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="600px" type="application/pdf"></iframe>'
+
+        # StreamlitでHTMLとして表示
+        # unsafe_allow_html=True は必須
         st.markdown(pdf_display, unsafe_allow_html=True)
-        
-        st.markdown("---")
-        st.subheader("PDF保存")
-        st.write("内容を確認しましたか？PDFデータを保存しますか？")
-        
-        # ダウンロードボタンのデータは直接バイナリを渡す
-        st.download_button(
-            label="**PDFデータを保存**",
-            data=pdf_data_bytes, # ここは変更なし
-            file_name=file_name,
-            mime="application/pdf",
-            key="download_pdf_button"
-        )
 
 
         st.markdown("---")
