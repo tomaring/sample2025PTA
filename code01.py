@@ -61,7 +61,7 @@ def create_report_pdf(data):
 
     # 固定テキスト: ***運営委員会にて提出をお願いします***
     pdf.set_xy(0, 10) # X, Y 座標を指定 (左上から10mm, 10mm)
-    pdf.write(5, "***運営委員会にて提出をお願いします***", align='C') # write(行の高さ, テキスト)
+    pdf.write(5, "***運営委員会にて提出をお願いします***") # write(行の高さ, テキスト)
 
     # タイトル: 事業内容報告書
     pdf.set_font("IPAexGothic", size=14)
