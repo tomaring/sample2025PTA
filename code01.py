@@ -72,13 +72,13 @@ def create_report_pdf(data):
     pdf.set_xy(140, 30) # 令和7年9月2日の位置を調整
     pdf.cell(60, 5, convert_to_wareki(data['report_date']), ln=1, align='R')
 
-    '''
     # 学年 / 育成会本部 / 担当部署 の枠線とテキスト
     box_start_x = 10
     box_start_y = 40
     box_width = 190
     box_height = 25 # 学年, 育成会本部, 担当部署 を含む全体の高さ
 
+    '''
     pdf.set_xy(box_start_x, box_start_y)
     pdf.set_fill_color(255, 255, 255) # 白
     pdf.rect(box_start_x, box_start_y, box_width, box_height, 'DF') # 全体の枠
