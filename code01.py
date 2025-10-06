@@ -134,7 +134,7 @@ def create_report_pdf(data):
         pdf.cell(w=content_area_width * 0.2, h=pdf.font_size / pdf.k, txt=item['date'], align='C')
 
         # 事業内容報告 (上揃え)
-        pdf.set_xy(content_area_x + content_area_width * 0.2 + 1, y_current + 5) # 少し内側にパディング
+        pdf.set_xy(content_area_x + content_area_width * 0.2 + 1, y_current + 4.5) # 少し内側にパディング
         pdf.multi_cell(w=content_area_width * 0.8 - 2, h=pdf.font_size * 1.2 / pdf.k, txt=item['content'], align='L')
         
         y_current += calculated_height # 次の行のY座標を更新
@@ -166,12 +166,12 @@ def create_report_pdf(data):
     
     # 1行目のテキスト
     pdf.set_xy(content_area_x + 1, text_y_start) # 1mmパディング
-    pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line1, align='C')
+    pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size / pdf.k, txt=header_text_line1, align='C')
     
     # 2行目のテキスト
     # multi_cellが自動的にY座標を進めるので、set_xでX座標をリセットするだけでOK
     pdf.set_x(content_area_x + 1)
-    pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line2, align='C')
+    pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size / pdf.k, txt=header_text_line2, align='C')
 
     y_current += header_height
 
@@ -181,7 +181,7 @@ def create_report_pdf(data):
     issue_box_height = max(30, (int(lines_count_issues) + 1) * pdf.font_size * 1.2 / pdf.k) # 最小高30mm
 
     pdf.rect(content_area_x, y_current, content_area_width, issue_box_height) # 枠を描画
-    pdf.set_xy(content_area_x + 1, y_current + 1) # テキスト開始位置を調整 (上揃え)
+    pdf.set_xy(content_area_x + 1, y_current + 4.5) # テキスト開始位置を調整 (上揃え)
     pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=data['issues'], align='L')
     y_current += issue_box_height
 
@@ -212,7 +212,7 @@ def create_report_pdf(data):
         pdf.cell(w=content_area_width * 0.2, h=pdf.font_size / pdf.k, txt=item['date'], align='C')
 
         # 活動予定 (上揃え)
-        pdf.set_xy(content_area_x + content_area_width * 0.2 + 1, y_current + 1)
+        pdf.set_xy(content_area_x + content_area_width * 0.2 + 1, y_current + 4.5)
         pdf.multi_cell(w=content_area_width * 0.8 - 2, h=pdf.font_size * 1.2 / pdf.k, txt=item['content'], align='L')
 
         y_current += calculated_height # 次の行のY座標を更新
