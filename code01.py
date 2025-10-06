@@ -87,25 +87,25 @@ def create_report_pdf(data):
 
     
     # --- 事業内容報告 ---
-    section_margin_top = 5 # 上部マージン
+    section_margin_top = 2 # 上部マージン
     # タイトル部分の枠線
     y_current = box_start_y + box_height + section_margin_top
     pdf.set_xy(box_start_x, y_current)
-    pdf.set_font("IPAexGothic", size=10) # 太字
+    pdf.set_font("IPAexGothic", size=18) # 太字
     pdf.cell(w=box_width, h=8, txt="事業内容報告", border=1, ln=1, align='L') # 枠付き
-    pdf.set_font("IPAexGothic", size=10) # 太字解除
+    #pdf.set_font("IPAexGothic", size=18) # 太字解除
 
     # テーブルヘッダー
     y_current = pdf.get_y()
     pdf.set_xy(box_start_x, y_current)
-    pdf.set_font("IPAexGothic", size=9)
-    pdf.cell(w=box_width * 0.2, h=7, txt="日程", border=1, align='C')
+    pdf.set_font("IPAexGothic", size=12)
+    pdf.cell(w=box_width * 0.2, h=7, txt="日程", border=1, ln=1, align='C')
     pdf.cell(w=box_width * 0.8, h=7, txt="事業内容報告", border=1, ln=1, align='C')
-    pdf.set_font("IPAexGothic", size=9) # 太字解除
+    #pdf.set_font("IPAexGothic", size=9) # 太字解除
 
     # テーブル内容
     y_current = pdf.get_y()
-    min_row_height = 10 # 各行の最小高さ
+    min_row_height = 14 # 各行の最小高さ
     for i, item in enumerate(data['business_reports']):
         # 日程セル
         pdf.set_xy(box_start_x, y_current)
