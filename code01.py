@@ -134,7 +134,7 @@ def create_report_pdf(data):
         pdf.cell(w=content_area_width * 0.2, h=pdf.font_size / pdf.k, txt=item['date'], align='C')
 
         # 事業内容報告 (上揃え)
-        pdf.set_xy(content_area_x + content_area_width * 0.2 + 1, y_current + 1.2) # 少し内側にパディング
+        pdf.set_xy(content_area_x + content_area_width * 0.2 + 1, y_current + 2.5) # 少し内側にパディング
         pdf.multi_cell(w=content_area_width * 0.8 - 2, h=pdf.font_size * 1.2 / pdf.k, txt=item['content'], align='L')
         
         y_current += calculated_height # 次の行のY座標を更新
