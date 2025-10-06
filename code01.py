@@ -135,9 +135,9 @@ def create_report_pdf(data):
 
         # 事業内容報告 (上揃え)
         pdf.set_xy(content_area_x + content_area_width * 0.2 + 1, y_current + 4.5) # 少し内側にパディング
-        pdf.multi_cell(w=content_area_width * 0.8 - 2, h=pdf.font_size * 1.2 / pdf.k, txt=item['content'], align='L')
+        pdf.multi_cell(w=content_area_width * 0.8 - 2, h=5, txt=item['content'], align='L')
         
-        y_current += calculated_height # 次の行のY座標を更新
+        y_current = pdf.get_y() # 次の行のY座標を更新
 
     # 最後のデータの罫線は各セル描画で対応済、不要なら削除
     # pdf.line(content_area_x, y_current, content_area_x + content_area_width, y_current) 
@@ -154,7 +154,7 @@ def create_report_pdf(data):
     # ヘッダーテキストの高さ計算 (2行分の高さを考慮)
     # fpdfのget_string_widthは現在のフォントサイズに依存するので注意
     # 2行テキストが収まるような高さ計算 (概算)
-    header_height = max(15, (pdf.font_size * 2 * 1.2) / pdf.k) # 2行分の高さの目安
+    header_height = max(8, (pdf.font_size * 2 * 1.2) / pdf.k) # 2行分の高さの目安
     
     # 枠を描画
     pdf.rect(content_area_x, y_current, content_area_width, header_height)
@@ -182,8 +182,8 @@ def create_report_pdf(data):
 
     pdf.rect(content_area_x, y_current, content_area_width, issue_box_height) # 枠を描画
     pdf.set_xy(content_area_x + 1, y_current + 4.5) # テキスト開始位置を調整 (上揃え)
-    pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=data['issues'], align='L')
-    y_current += issue_box_height
+    pdf.multi_cell(w=content_area_width - 2, h=5, txt=data['issues'], align='L')
+    y_current = pdf.get_y()
 
 
     # --- 次回運営委員会までの活動予定 ---
@@ -213,9 +213,9 @@ def create_report_pdf(data):
 
         # 活動予定 (上揃え)
         pdf.set_xy(content_area_x + content_area_width * 0.2 + 1, y_current + 4.5)
-        pdf.multi_cell(w=content_area_width * 0.8 - 2, h=pdf.font_size * 1.2 / pdf.k, txt=item['content'], align='L')
+        pdf.multi_cell(w=content_area_width * 0.8 - 2, h=5, txt=item['content'], align='L')
 
-        y_current += calculated_height # 次の行のY座標を更新
+        y_current = pdf.get_y() # 次の行のY座標を更新
     
     # 最後のデータの罫線は各セル描画で対応済、不要なら削除
     # pdf.line(content_area_x, y_current, content_area_x + content_area_width, y_current) 
