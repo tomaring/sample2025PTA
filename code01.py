@@ -166,12 +166,12 @@ def create_report_pdf(data):
     
     # 1行目のテキスト
     pdf.set_xy(content_area_x + 1, text_y_start) # 1mmパディング
-    pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size / pdf.k, txt=header_text_line1, align='C')
+    pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 3 / pdf.k, txt=header_text_line1, align='C')
     
     # 2行目のテキスト
     # multi_cellが自動的にY座標を進めるので、set_xでX座標をリセットするだけでOK
     pdf.set_x(content_area_x + 1)
-    pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size / pdf.k, txt=header_text_line2, align='C')
+    pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 3 / pdf.k, txt=header_text_line2, align='C')
 
     y_current += header_height
 
