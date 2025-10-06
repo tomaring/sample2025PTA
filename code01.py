@@ -153,11 +153,7 @@ def create_report_pdf(data):
     
     # ヘッダーテキストの高さ計算 (2行分の高さを考慮)
     # fpdfのget_string_widthは現在のフォントサイズに依存するので注意
-    line1_width = pdf.get_string_width(header_text_line1)
-    line2_width = pdf.get_string_width(header_text_line2)
-
     # 2行テキストが収まるような高さ計算 (概算)
-    # pdf.font_size / pdf.k は1行のテキストのmm単位での高さ
     header_height = max(15, (pdf.font_size * 2 * 1.2) / pdf.k) # 2行分の高さの目安
     
     # 枠を描画
@@ -165,10 +161,15 @@ def create_report_pdf(data):
 
     # テキストを垂直中央に配置するため、Y座標を計算
     # 2行のテキストとして配置
+    # (header_height - (pdf.font_size * 2 * 1.2 / pdf.k)) / 2 は、枠の高さと2行テキストの高さの差分を中央に寄せるためのオフセット
     text_y_start = y_current + (header_height - (pdf.font_size * 2 * 1.2 / pdf.k)) / 2
     
+    # 1行目のテキスト
     pdf.set_xy(content_area_x + 1, text_y_start) # 1mmパディング
-    pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line1, align='C', new_x="LMARGIN", new_y="CURRENT")
+    pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line1, align='C')
+    
+    # 2行目のテキスト
+    # multi_cellが自動的にY座標を進めるので、set_xでX座標をリセットするだけでOK
     pdf.set_x(content_area_x + 1)
     pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line2, align='C')
 
