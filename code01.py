@@ -158,32 +158,33 @@ def create_report_pdf(data):
     # 3行目: 「活動の反省と課題」ヘッダー
     pdf.set_xy(content_area_x, y_current)
     header_text_line1 = "活動の反省と課題"
-    header_text_line2 = "(次年度以降の改善材料になりますので詳細にお願いします)"
-    
+     header_text_line2 = "(次年度以降の改善材料になりますので詳細にお願いします)"
+     
     # multi_cellで2行のテキストが占める高さを正確に計算
+    # multi_cellで1行のテキストが占める高さを正確に計算 (header_text_line2のみ)
     temp_y_before_header = pdf.get_y()
     pdf.set_xy(content_area_x + 1, temp_y_before_header + 1) # 仮の開始位置
     pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line1, align='C')
     pdf.set_x(content_area_x + 1) # X座標をリセット
     pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line2, align='C')
     height_of_header_text = pdf.get_y() - temp_y_before_header
-    
+     
     header_height = max(15, height_of_header_text + 2) # 上下パディングを考慮
-    
+     
     # PDFのY座標を元の位置に戻す
     pdf.set_y(y_current)
-
+    
     # 枠を描画
     pdf.rect(content_area_x, y_current, content_area_width, header_height)
-
+ 
     # テキストを配置
     text_y_start_header = y_current + (header_height - height_of_header_text) / 2
-    #pdf.set_xy(content_area_x + 1, text_y_start_header) # 調整した開始Y座標を使用
-    #pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line1, align='C')
+    pdf.set_xy(content_area_x + 1, text_y_start_header) # 調整した開始Y座標を使用
+    pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line1, align='C')
     pdf.set_x(content_area_x + 1) # X座標をリセット
     pdf.set_xy(content_area_x + 1, text_y_start_header) # 調整した開始Y座標を使用
     pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line2, align='C')
-
+ 
     y_current += header_height
 
     # 4行目: 入力データ
