@@ -178,9 +178,10 @@ def create_report_pdf(data):
 
     # テキストを配置
     text_y_start_header = y_current + (header_height - height_of_header_text) / 2
-    pdf.set_xy(content_area_x + 1, text_y_start_header) # 調整した開始Y座標を使用
-    pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line1, align='C')
+    #pdf.set_xy(content_area_x + 1, text_y_start_header) # 調整した開始Y座標を使用
+    #pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line1, align='C')
     pdf.set_x(content_area_x + 1) # X座標をリセット
+    pdf.set_xy(content_area_x + 1, text_y_start_header) # 調整した開始Y座標を使用
     pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line2, align='C')
 
     y_current += header_height
