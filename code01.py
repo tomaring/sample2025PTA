@@ -91,11 +91,11 @@ def create_report_pdf(data):
     
     # 学年
     pdf.set_xy(line_x_start, box_y_start)
-    pdf.cell(w=line_x_end - line_x_start, h=line_height, txt="学年", border='B', align='L') # 下線のみ
+    pdf.cell(w=line_x_end - line_x_start, h=line_height, txt="　", border='B', align='L') # 下線のみ
 
     # 部
     pdf.set_xy(line_x_start, box_y_start + line_height + 2) # 学年から少し下に
-    pdf.cell(w=line_x_end - line_x_start, h=line_height, txt="部", border='B', align='L') # 下線のみ
+    pdf.cell(w=line_x_end - line_x_start, h=line_height, txt="　", border='B', align='L') # 下線のみ
 
     # 担当部署のテキスト
     # 部のライン上に担当部署名が来るように調整
@@ -157,34 +157,40 @@ def create_report_pdf(data):
 
     # 3行目: 「活動の反省と課題」ヘッダー
     pdf.set_xy(content_area_x, y_current)
-    header_text_line1 = "活動の反省と課題"
+    header_text_line1 = "活動の反省と課題" # この行は削除せず、ヘッダーのタイトルとして保持
     header_text_line2 = "(次年度以降の改善材料になりますので詳細にお願いします)"
      
-    # multi_cellで2行のテキストが占める高さを正確に計算
     # multi_cellで1行のテキストが占める高さを正確に計算 (header_text_line2のみ)
+    # multi_cellで1行のテキストが占める高さを正確に計算 (header_text_line2のみの描画を想定)
     temp_y_before_header = pdf.get_y()
     pdf.set_xy(content_area_x + 1, temp_y_before_header + 1) # 仮の開始位置
-    pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line1, align='C')
-    pdf.set_x(content_area_x + 1) # X座標をリセット
     pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line2, align='C')
+    pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line2, align='C') # header_text_line2のみで高さを計算
     height_of_header_text = pdf.get_y() - temp_y_before_header
      
     header_height = max(15, height_of_header_text + 2) # 上下パディングを考慮
-     
-    # PDFのY座標を元の位置に戻す
-    pdf.set_y(y_current)
-    
+
     # 枠を描画
     pdf.rect(content_area_x, y_current, content_area_width, header_height)
  
     # テキストを配置
     text_y_start_header = y_current + (header_height - height_of_header_text) / 2
     pdf.set_xy(content_area_x + 1, text_y_start_header) # 調整した開始Y座標を使用
-    pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line1, align='C')
-    pdf.set_x(content_area_x + 1) # X座標をリセット
-    pdf.set_xy(content_area_x + 1, text_y_start_header) # 調整した開始Y座標を使用
     pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line2, align='C')
- 
+    # ここではheader_text_line1をタイトルとして使用し、その下にheader_text_line2を配置する
+    
+    # まず、"活動の反省と課題" を配置 (少し大きめのフォントや太字にしても良いが、ここでは同じフォントサイズで)
+    # このテキストが占める高さを計算する (これは仮の計算で、実際の描画に使われるのは次のmulti_cell)
+    pdf.set_xy(content_area_x + 1, y_current + 2) # 枠の上から少しスペースを開ける
+    temp_y_before_title = pdf.get_y()
+    pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line1, align='C')
+    height_of_title = pdf.get_y() - temp_y_before_title
+    
+    # 次に、"(次年度以降の改善材料になりますので詳細にお願いします)" を配置
+    # 前のmulti_cellが自動的にY座標を進めているので、set_xでX座標をリセットするだけで良い
+    pdf.set_x(content_area_x + 1)
+    pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line2, align='C')
+
     y_current += header_height
 
     # 4行目: 入力データ
