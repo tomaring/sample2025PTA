@@ -160,33 +160,6 @@ def create_report_pdf(data):
     header_text_line1 = "活動の反省と課題"
     header_text_line2 = "(次年度以降の改善材料になりますので詳細にお願いします)"
      
-    # multi_cellで1行のテキストが占める高さを正確に計算 (header_text_line2のみの描画を想定)
-    temp_y_before_header = pdf.get_y()
-    pdf.set_xy(content_area_x + 1, temp_y_before_header + 1) # 仮の開始位置
-    pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line2, align='C') # header_text_line2のみで高さを計算
-    height_of_header_text = pdf.get_y() - temp_y_before_header
-    
-    header_height = max(15, height_of_header_text + 2) # 上下パディングを考慮
-    # 枠を描画
-    pdf.rect(content_area_x, y_current, content_area_width, header_height)
-
-    # テキストを配置
-    text_y_start_header = y_current + (header_height - height_of_header_text) / 2
-    # ここではheader_text_line1をタイトルとして使用し、その下にheader_text_line2を配置する
-    
-    # まず、"活動の反省と課題" を配置 (少し大きめのフォントや太字にしても良いが、ここでは同じフォントサイズで)
-    # このテキストが占める高さを計算する (これは仮の計算で、実際の描画に使われるのは次のmulti_cell)
-    pdf.set_xy(content_area_x + 1, y_current + 2) # 枠の上から少しスペースを開ける
-    temp_y_before_title = pdf.get_y()
-    pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line1, align='C')
-    height_of_title = pdf.get_y() - temp_y_before_title
-    
-    # 次に、"(次年度以降の改善材料になりますので詳細にお願いします)" を配置
-    # 前のmulti_cellが自動的にY座標を進めているので、set_xでX座標をリセットするだけで良い
-    pdf.set_x(content_area_x + 1)
-    pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line2, align='C')
-
-    y_current += header_height
     # --- 「活動の反省と課題」ヘッダー (2つの論理的な枠として配置) ---
 
     # 1. 「活動の反省と課題」の枠とテキスト
@@ -227,35 +200,77 @@ def create_report_pdf(data):
 
     # 2つの枠の間に実線は引かないため、ここでy_currentが次のコンテンツの開始位置となる
 
+
+    # --- 活動の反省と課題 --- (添付画像のように1つの枠に2行ヘッダーテキストを配置)
+
+    # 2行のヘッダーテキストが占める高さを事前に計算する
+    temp_y_before_header_calc = pdf.get_y() # 現在のY座標を保存
+    pdf.set_xy(content_area_x + 1, temp_y_before_header_calc + 2) # 仮の開始位置 + 上パディング
+    pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line1, align='C')
+    pdf.set_x(content_area_x + 1) # X座標をリセット
+    pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line2, align='C')
+    
+    height_of_combined_header_text = pdf.get_y() - temp_y_before_header_calc # 2行のテキストが実際に占めた高さ
+    
+    # ヘッダー枠全体の高さを決定 (テキストの高さ + 上下パディング)
+    # 最小高は、2行テキストが無理なく収まる高さに設定
+    header_box_height = max(20, height_of_combined_header_text + 4) # 最小高20mm、上下パディング4mm
+
+    # PDFのY座標を元の描画開始位置に戻す
+    pdf.set_y(y_current) 
+
+    # ヘッダー枠を描画
+    pdf.rect(content_area_x, y_current, content_area_width, header_box_height) 
+
+    # テキストを枠内に配置
+    # 垂直方向の中央揃えを意識して開始Y座標を計算
+    text_y_start_for_header = y_current + (header_box_height - height_of_combined_header_text) / 2
+
+    pdf.set_xy(content_area_x + 1, text_y_start_for_header)
+    pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line1, align='C')
+    
+    pdf.set_x(content_area_x + 1) # X座標をリセット
+    pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line2, align='C')
+
+    y_current += header_box_height # このヘッダー枠の高さ分だけY座標を進める
+
+    # 4行目: 入力データ (反省と課題のコメント欄)
+    # この枠はヘッダー枠の直下に配置される
     # 4行目: 入力データ
     start_x_issues = content_area_x + 1
     start_y_issues = y_current + 4.5 # コメント開始行を調整 (少し下げる)
-    start_x_issues = content_area_x + 1 
-    start_y_issues = y_current + 4.5 # コメント開始行を調整 (少し下げる) 
+    start_y_issues = y_current + 4.5 # コメント開始行を調整 (ヘッダーのすぐ下から開始)
     text_w_issues = content_area_width - 2 # 左右パディング考慮
- 
+
     # ダミーでmulti_cellを実行し、テキストが占める高さを取得
     pdf.set_xy(start_x_issues, start_y_issues)
     temp_y_before_issues = pdf.get_y()
     pdf.multi_cell(w=text_w_issues, h=5, txt=data['issues'], align='L')
     height_of_issues_text = pdf.get_y() - temp_y_before_issues
+    # ダミーでmulti_cellを実行し、テキストが占める高さを取得（現在のy_currentから開始）
+    pdf.set_xy(start_x_issues, y_current + 4.5) # コメント開始行を調整 (ヘッダーのすぐ下から開始)
+    temp_y_after_dummy_issues = pdf.multi_cell(w=text_w_issues, h=5, txt=data['issues'], align='L', dry_run=True) # dry_runで描画せず高さを取得
+    height_of_issues_text = temp_y_after_dummy_issues - (y_current + 4.5) # multi_cellが実際に使用する高さを計算
     
     # 枠の最終的な高さを決定 (テキストの高さ + 上下パディング)
     # 5行分の高さの目安: 5 * (pdf.font_size * 1.2 / pdf.k) + 上下パディング
     min_issue_height_5_lines = 5 * (pdf.font_size * 1.2 / pdf.k) + 9 
 
     issue_box_height = max(min_issue_height_5_lines, height_of_issues_text + (start_y_issues - y_current) * 2) # 上下パディング考慮
+    min_issue_height_5_lines = 5 * (pdf.font_size * 1.2 / pdf.k) + (4.5 * 2) # 5行 + 上下パディング
 
-    # PDFのY座標を元の位置に戻す
+    issue_box_height = max(min_issue_height_5_lines, height_of_issues_text + (4.5 * 2)) # テキストの高さ + 上下パディング
+
+    # PDFのY座標を元の位置に戻す (正確には現在のy_current)
     pdf.set_y(y_current) 
     pdf.rect(content_area_x, y_current, content_area_width, issue_box_height) # 枠を描画
 
     # テキストを枠内に配置
     pdf.set_xy(start_x_issues, start_y_issues) # 調整した開始Y座標を使用
+    pdf.set_xy(start_x_issues, y_current + 4.5) # 調整した開始Y座標を使用
     pdf.multi_cell(w=text_w_issues, h=5, txt=data['issues'], align='L')
     
     y_current += issue_box_height # 次のセクションの開始Y座標
-
 
     # --- 次回運営委員会までの活動予定 ---
     y_current += 10 # 前のセクションからのマージン
