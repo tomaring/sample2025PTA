@@ -325,7 +325,7 @@ for i, report in enumerate(st.session_state.business_reports):
                 st.rerun() # 削除後にUIを再描画
 
 if st.button("事業内容報告を追加", key="add_business_report_button"):
-    st.st.session_state.business_reports.append({'date': '', 'content': ''})
+    st.session_state.business_reports.append({'date': '', 'content': ''})
     st.rerun()
 
 
