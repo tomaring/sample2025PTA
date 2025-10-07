@@ -7,7 +7,7 @@ import base64
 from fpdf import FPDF
 
 # 日本語フォントのパス (プロジェクトのルートにIPAexGothic.ttfがあることを想定)
-# Renderにデプロイする際、このファイルもGitリポジトリに含める必要があります。
+# Renderにデプロイする際、このファイルもGitリポジションに含める必要があります。
 FONT_PATH = "IPAexGothic.ttf"
 
 # FPDFのサブクラスを作成し、コンストラクタでフォントを登録
@@ -24,8 +24,6 @@ class MyFPDF(FPDF):
             # Streamlit上でエラーメッセージを表示し、スクリプトの実行を停止
             st.error(f"フォントの読み込みに失敗しました: {e}. '{FONT_PATH}' が存在するか確認してください。")
             st.stop() # Streamlitアプリケーションの実行を停止
-
-    # 必要に応じて、共通のヘッダーやフッターメソッドなどをここに定義できます
 
 def convert_to_wareki(dt):
     """日付を和暦文字列に変換する"""
@@ -81,7 +79,7 @@ def create_report_pdf(data):
     pdf.set_xy(page_width - right_margin_mm - 60, date_y) # 右寄せで日付のセル開始位置を調整
     pdf.cell(60, 5, convert_to_wareki(data['report_date']), align='R', ln=1)
 
-    # 「学年」「部」の枠線とテキスト
+    # 「学年」「部」の枠線とテキスト (下線のみに戻す)
     # 添付ファイルの位置に合わせて調整
     # Y座標は日付の少し下から開始
     box_y_start = date_y + 10 
@@ -93,14 +91,11 @@ def create_report_pdf(data):
     
     # 学年
     pdf.set_xy(line_x_start, box_y_start)
-    # 罫線を実線にするため、border='B'ではなくrectで描画
-    pdf.rect(line_x_start, box_y_start, line_x_end - line_x_start, line_height)
-    pdf.cell(w=line_x_end - line_x_start, h=line_height, txt="学年", align='L') 
+    pdf.cell(w=line_x_end - line_x_start, h=line_height, txt="学年", border='B', align='L') # 下線のみ
 
     # 部
     pdf.set_xy(line_x_start, box_y_start + line_height + 2) # 学年から少し下に
-    pdf.rect(line_x_start, box_y_start + line_height + 2, line_x_end - line_x_start, line_height)
-    pdf.cell(w=line_x_end - line_x_start, h=line_height, txt="部", align='L') 
+    pdf.cell(w=line_x_end - line_x_start, h=line_height, txt="部", border='B', align='L') # 下線のみ
 
     # 担当部署のテキスト
     # 部のライン上に担当部署名が来るように調整
@@ -116,59 +111,33 @@ def create_report_pdf(data):
     pdf.set_xy(content_area_x, y_current)
     pdf.cell(w=content_area_width * 0.2, h=10, txt="日程", border=1, align='C') 
     pdf.cell(w=content_area_width * 0.8, h=10, txt="事業内容報告", border=1, ln=1, align='C')
-    y_current = pdf.get_y()
+    y_current = pdf.get_y() # ヘッダーの次のY座標
 
     # 2行目以降: 入力データ
     for i, item in enumerate(data['business_reports']):
-        text_w_content = content_area_width * 0.8 - 2 # multi_cellの左右パディング考慮
+        # multi_cellでテキストが占める実際の高さを計算する
+        # 現在のX, Y座標と幅を保存
+        start_x_content = content_area_x + content_area_width * 0.2 + 1 # 事業内容報告のテキスト開始X
+        start_y_content = y_current + 2 # コメント開始行を調整 (少し高く)
+        text_w_content = content_area_width * 0.8 - 2 # 左右パディング考慮
         
-        # multi_cell_heightを事前に計算して、枠の高さと合わせる
-        # get_string_width はテキストの幅を返すため、それとセルの幅から行数を推定する
-        # ここでは概算で、文字数 / (セル幅 / フォント幅) で行数を求め、高さに変換
+        # ダミーでmulti_cellを実行し、テキストが占める高さを取得
+        # (ただし、実際に描画はしない)
+        pdf.set_xy(start_x_content, start_y_content)
+        temp_y_before = pdf.get_y()
+        pdf.multi_cell(w=text_w_content, h=5, txt=item['content'], align='L')
+        height_of_content_text = pdf.get_y() - temp_y_before
         
-        # 簡易的な行数計算。より正確にはテキストを実際にmulti_cellに渡して高さを取得する方法もあるが複雑になる
-        # fpdfはline_heightを内部で保持していないため、get_string_widthを直接使うのは難しい
-        # ここでは、おおよその文字数から高さを計算する (経験則)
-        # 1行の高さは pdf.font_size / pdf.k (mm)
-        # 余裕を持たせるため、行間を考慮した factor (例: 1.2) を乗じる
+        # 枠の最終的な高さを決定 (テキストの高さ + 上下パディング)
+        # 最小高は10mmとし、テキストの高さに合わせて調整
+        calculated_height = max(10, height_of_content_text + (start_y_content - y_current) * 2 ) # 上下パディング考慮
+        
+        # PDFのY座標を元の位置に戻す
+        pdf.set_y(y_current) 
 
-        # content_area_width * 0.8 の幅に `item['content']` が入る高さを計算
-        # get_string_width は現在のフォント設定における文字列の幅 (mm) を返す
-        # multi_cellのwはパディング分を引いた幅 (w - 2)
-        
-        # multi_cellの戻り値は現在のY座標。これを使って高さを取得する方法が正確
-        start_y_for_height_calc = pdf.get_y() # 現在のY座標を保存
-        # 実際にmulti_cellを呼んで高さを計算 (描画はしない)
-        pdf.set_xy(content_area_x + content_area_width * 0.2 + 1, start_y_for_height_calc)
-        # dummy_multi_cellは存在しないので、一旦描画してY座標を取得する
-        # この部分の修正は複雑になるため、ここでは概算のままにする。
-        # 既存のロジックを維持し、最低高を確保することで対応。
-        
-        # FPDFは事前にmulti_cellの正確な高さを計算する機能が限定的
-        # 最も簡単なのは、十分な高さを与え、テキストが収まるようにすること
-        # または、以下のように `get_string_width` を利用した概算で計算
-
-        # フォントサイズと行間を考慮した1行あたりの高さ
-        one_line_height = pdf.font_size * 1.2 / pdf.k 
-        # テキストの幅からおおよその行数を算出
-        # text_w_content は multi_cell の描画幅
-        # get_string_width(txt) はテキストの描画幅 (mm)
-        text_content_width_mm = pdf.get_string_width(item['content'])
-        
-        # 1行に収まる文字数 (おおよそ)
-        chars_per_line_estimate = text_w_content / (pdf.get_string_width('あ') if pdf.get_string_width('あ') > 0 else 5) # 1文字あたりの幅
-        
-        # テキストの総文字数 (日本語の場合、文字数と幅は必ずしも一致しないが、概算として)
-        num_chars = len(item['content'])
-
-        # 必要な行数 (切り上げ)
-        estimated_lines = max(1, (num_chars // chars_per_line_estimate) + (1 if num_chars % chars_per_line_estimate != 0 else 0))
-        
-        calculated_height = max(10, estimated_lines * one_line_height) # 最小高10mm
-
-        # 枠を先に描画
-        pdf.rect(content_area_x, y_current, content_area_width * 0.2, calculated_height)
-        pdf.rect(content_area_x + content_area_width * 0.2, y_current, content_area_width * 0.8, calculated_height)
+        # 枠を描画
+        pdf.rect(content_area_x, y_current, content_area_width * 0.2, calculated_height) # 日程の枠
+        pdf.rect(content_area_x + content_area_width * 0.2, y_current, content_area_width * 0.8, calculated_height) # 事業内容報告の枠
         
         # テキスト位置調整
         # 日程 (垂直方向中央揃え)
@@ -176,16 +145,11 @@ def create_report_pdf(data):
         pdf.cell(w=content_area_width * 0.2, h=pdf.font_size / pdf.k, txt=item['date'], align='C')
 
         # 事業内容報告 (上揃え)
-        # multi_cellの高さはhパラメータではなく、テキストの行数によって自動調整されるため、
-        # 十分な高さを与えるか、都度計算してrectで描画後にmulti_cellを使う
-        pdf.set_xy(content_area_x + content_area_width * 0.2 + 1, y_current + 4.5) # 少し内側にパディング
-        pdf.multi_cell(w=content_area_width * 0.8 - 2, h=5, txt=item['content'], align='L')
+        pdf.set_xy(start_x_content, start_y_content) # 調整した開始Y座標を使用
+        pdf.multi_cell(w=text_w_content, h=5, txt=item['content'], align='L')
         
-        # multi_cellの描画後、pdf.get_y()はテキストの最終行の下にくる
-        # 次の行の描画開始Y座標は、このY_current + calculated_height と pdf.get_y() のうち、大きい方を使う
-        # multi_cellが実際に使用した高さを取得し、それを次の y_current に使うのが正確
-        actual_y_after_content = pdf.get_y()
-        y_current = max(y_current + calculated_height, actual_y_after_content)
+        # 次の行の開始Y座標を更新
+        y_current += calculated_height # 枠の高さ分だけY座標を進める
 
 
     # --- 活動の反省と課題 ---
@@ -196,53 +160,57 @@ def create_report_pdf(data):
     header_text_line1 = "活動の反省と課題"
     header_text_line2 = "(次年度以降の改善材料になりますので詳細にお願いします)"
     
-    # ヘッダーテキストの高さ計算 (2行分の高さを考慮し、枠に収まるように調整)
-    # 1行の高さはpdf.font_size * 1.2 / pdf.k とし、2行分に十分な高さを確保
-    header_height_for_text = (pdf.font_size * 1.2 / pdf.k) * 2
-    header_height = max(15, header_height_for_text + 2) # 最小高15mm、上下に少しパディング
+    # multi_cellで2行のテキストが占める高さを正確に計算
+    temp_y_before_header = pdf.get_y()
+    pdf.set_xy(content_area_x + 1, temp_y_before_header + 1) # 仮の開始位置
+    pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line1, align='C')
+    pdf.set_x(content_area_x + 1) # X座標をリセット
+    pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line2, align='C')
+    height_of_header_text = pdf.get_y() - temp_y_before_header
+    
+    header_height = max(15, height_of_header_text + 2) # 上下パディングを考慮
+    
+    # PDFのY座標を元の位置に戻す
+    pdf.set_y(y_current)
 
     # 枠を描画
     pdf.rect(content_area_x, y_current, content_area_width, header_height)
 
-    # テキストを垂直中央に配置するため、Y座標を計算
-    text_y_start = y_current + (header_height - header_height_for_text) / 2
-    
-    # 1行目のテキスト
-    pdf.set_xy(content_area_x + 1, text_y_start) # 1mmパディング
+    # テキストを配置
+    text_y_start_header = y_current + (header_height - height_of_header_text) / 2
+    pdf.set_xy(content_area_x + 1, text_y_start_header) # 調整した開始Y座標を使用
     pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line1, align='C')
-    
-    # 2行目のテキスト
     pdf.set_x(content_area_x + 1) # X座標をリセット
     pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line2, align='C')
 
     y_current += header_height
 
     # 4行目: 入力データ
+    start_x_issues = content_area_x + 1
+    start_y_issues = y_current + 4.5 # コメント開始行を調整 (少し下げる)
     text_w_issues = content_area_width - 2 # 左右パディング考慮
 
-    # テキストを実際にmulti_cellに渡して高さを取得し、枠の高さを決定する
-    start_y_for_issue_calc = pdf.get_y() # 現在のY座標を保存
-    pdf.set_xy(content_area_x + 1, start_y_for_issue_calc + 4.5) # 仮でテキスト位置を設定
-    # multi_cellを実行して、実際にテキストが使用する高さを取得
-    pdf.multi_cell(w=content_area_width - 2, h=5, txt=data['issues'], align='L')
-    actual_y_after_issue_content = pdf.get_y()
+    # ダミーでmulti_cellを実行し、テキストが占める高さを取得
+    pdf.set_xy(start_x_issues, start_y_issues)
+    temp_y_before_issues = pdf.get_y()
+    pdf.multi_cell(w=text_w_issues, h=5, txt=data['issues'], align='L')
+    height_of_issues_text = pdf.get_y() - temp_y_before_issues
     
-    # テキストが使った高さを計算 (少なくとも5行分は確保)
-    issue_content_used_height = actual_y_after_issue_content - (start_y_for_issue_calc + 4.5)
-    # 5行分の高さの目安: 5 * (pdf.font_size * 1.2 / pdf.k) + 上下パディング(2*4.5mm)
+    # 枠の最終的な高さを決定 (テキストの高さ + 上下パディング)
+    # 5行分の高さの目安: 5 * (pdf.font_size * 1.2 / pdf.k) + 上下パディング
     min_issue_height_5_lines = 5 * (pdf.font_size * 1.2 / pdf.k) + 9 
 
-    issue_box_height = max(min_issue_height_5_lines, issue_content_used_height + 9) # 最小高を5行分とし、上下パディングを追加
+    issue_box_height = max(min_issue_height_5_lines, height_of_issues_text + (start_y_issues - y_current) * 2) # 上下パディング考慮
 
-    # PDFのY座標を、枠の開始位置に戻す
+    # PDFのY座標を元の位置に戻す
     pdf.set_y(y_current) 
     pdf.rect(content_area_x, y_current, content_area_width, issue_box_height) # 枠を描画
 
     # テキストを枠内に配置
-    pdf.set_xy(content_area_x + 1, y_current + 4.5) # テキスト開始位置を調整 (上揃え)
-    pdf.multi_cell(w=content_area_width - 2, h=5, txt=data['issues'], align='L') # hは1行あたりの高さ
+    pdf.set_xy(start_x_issues, start_y_issues) # 調整した開始Y座標を使用
+    pdf.multi_cell(w=text_w_issues, h=5, txt=data['issues'], align='L')
     
-    y_current = y_current + issue_box_height # 次のセクションの開始Y座標
+    y_current += issue_box_height # 次のセクションの開始Y座標
 
 
     # --- 次回運営委員会までの活動予定 ---
@@ -252,20 +220,25 @@ def create_report_pdf(data):
     pdf.set_xy(content_area_x, y_current)
     pdf.cell(w=content_area_width * 0.2, h=10, txt="日程", border=1, align='C')
     pdf.cell(w=content_area_width * 0.8, h=10, txt="次回運営委員会までの活動予定", border=1, ln=1, align='C')
-    y_current = pdf.get_y()
+    y_current = pdf.get_y() # ヘッダーの次のY座標
 
     # 6行目以降: 入力データ
     for i, item in enumerate(data['next_activities']):
+        # multi_cellでテキストが占める実際の高さを計算する
+        start_x_content = content_area_x + content_area_width * 0.2 + 1
+        start_y_content = y_current + 2 # コメント開始行を調整 (少し高く)
         text_w_content = content_area_width * 0.8 - 2
         
-        one_line_height = pdf.font_size * 1.2 / pdf.k 
-        text_content_width_mm = pdf.get_string_width(item['content'])
-        chars_per_line_estimate = text_w_content / (pdf.get_string_width('あ') if pdf.get_string_width('あ') > 0 else 5)
-        num_chars = len(item['content'])
-        estimated_lines = max(1, (num_chars // chars_per_line_estimate) + (1 if num_chars % chars_per_line_estimate != 0 else 0))
-        calculated_height = max(10, estimated_lines * one_line_height) # 最小高10mm
+        pdf.set_xy(start_x_content, start_y_content)
+        temp_y_before = pdf.get_y()
+        pdf.multi_cell(w=text_w_content, h=5, txt=item['content'], align='L')
+        height_of_content_text = pdf.get_y() - temp_y_before
+        
+        calculated_height = max(10, height_of_content_text + (start_y_content - y_current) * 2 )
+        
+        pdf.set_y(y_current) 
 
-        # 枠を先に描画
+        # 枠を描画
         pdf.rect(content_area_x, y_current, content_area_width * 0.2, calculated_height)
         pdf.rect(content_area_x + content_area_width * 0.2, y_current, content_area_width * 0.8, calculated_height)
 
@@ -275,11 +248,10 @@ def create_report_pdf(data):
         pdf.cell(w=content_area_width * 0.2, h=pdf.font_size / pdf.k, txt=item['date'], align='C')
 
         # 活動予定 (上揃え)
-        pdf.set_xy(content_area_x + content_area_width * 0.2 + 1, y_current + 4.5)
-        pdf.multi_cell(w=content_area_width * 0.8 - 2, h=5, txt=item['content'], align='L')
+        pdf.set_xy(start_x_content, start_y_content) # 調整した開始Y座標を使用
+        pdf.multi_cell(w=text_w_content, h=5, txt=item['content'], align='L')
 
-        actual_y_after_content = pdf.get_y()
-        y_current = max(y_current + calculated_height, actual_y_after_content)
+        y_current += calculated_height # 枠の高さ分だけY座標を進める
     
     # PDFをバイトストリームとして出力
     return io.BytesIO(pdf.output())
