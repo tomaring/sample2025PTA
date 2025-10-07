@@ -157,26 +157,21 @@ def create_report_pdf(data):
 
     # 3行目: 「活動の反省と課題」ヘッダー
     pdf.set_xy(content_area_x, y_current)
-    header_text_line1 = "活動の反省と課題" # この行は削除せず、ヘッダーのタイトルとして保持
+    header_text_line1 = "活動の反省と課題"
     header_text_line2 = "(次年度以降の改善材料になりますので詳細にお願いします)"
      
-    # multi_cellで1行のテキストが占める高さを正確に計算 (header_text_line2のみ)
     # multi_cellで1行のテキストが占める高さを正確に計算 (header_text_line2のみの描画を想定)
     temp_y_before_header = pdf.get_y()
     pdf.set_xy(content_area_x + 1, temp_y_before_header + 1) # 仮の開始位置
-    pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line2, align='C')
     pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line2, align='C') # header_text_line2のみで高さを計算
     height_of_header_text = pdf.get_y() - temp_y_before_header
-     
+    
     header_height = max(15, height_of_header_text + 2) # 上下パディングを考慮
-
     # 枠を描画
     pdf.rect(content_area_x, y_current, content_area_width, header_height)
- 
+
     # テキストを配置
     text_y_start_header = y_current + (header_height - height_of_header_text) / 2
-    pdf.set_xy(content_area_x + 1, text_y_start_header) # 調整した開始Y座標を使用
-    pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line2, align='C')
     # ここではheader_text_line1をタイトルとして使用し、その下にheader_text_line2を配置する
     
     # まず、"活動の反省と課題" を配置 (少し大きめのフォントや太字にしても良いが、ここでは同じフォントサイズで)
@@ -192,12 +187,53 @@ def create_report_pdf(data):
     pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line2, align='C')
 
     y_current += header_height
+    # --- 「活動の反省と課題」ヘッダー (2つの論理的な枠として配置) ---
+
+    # 1. 「活動の反省と課題」の枠とテキスト
+    # テキストの高さ計算
+    temp_y_before_title = pdf.get_y()
+    pdf.set_xy(content_area_x + 1, temp_y_before_title + 1)
+    pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line1, align='C')
+    height_of_title = pdf.get_y() - temp_y_before_title
+    
+    title_box_height = max(10, height_of_title + 2) # 最小高10mm + 上下パディング
+
+    pdf.set_y(y_current) # Y座標を元の位置に戻す
+    pdf.rect(content_area_x, y_current, content_area_width, title_box_height) # 枠を描画
+    
+    # テキストを配置
+    pdf.set_xy(content_area_x + 1, y_current + (title_box_height - height_of_title) / 2)
+    pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line1, align='C')
+    
+    y_current += title_box_height # この枠の高さ分だけY座標を進める
+
+    # 2. 「(次年度以降の改善材料になりますので詳細にお願いします)」の枠とテキスト
+    # テキストの高さ計算
+    temp_y_before_subtitle = pdf.get_y()
+    pdf.set_xy(content_area_x + 1, temp_y_before_subtitle + 1)
+    pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line2, align='C')
+    height_of_subtitle = pdf.get_y() - temp_y_before_subtitle
+
+    subtitle_box_height = max(10, height_of_subtitle + 2) # 最小高10mm + 上下パディング
+
+    pdf.set_y(y_current) # Y座標を現在の位置に戻す
+    pdf.rect(content_area_x, y_current, content_area_width, subtitle_box_height) # 枠を描画
+
+    # テキストを配置
+    pdf.set_xy(content_area_x + 1, y_current + (subtitle_box_height - height_of_subtitle) / 2)
+    pdf.multi_cell(w=content_area_width - 2, h=pdf.font_size * 1.2 / pdf.k, txt=header_text_line2, align='C')
+
+    y_current += subtitle_box_height # この枠の高さ分だけY座標を進める
+
+    # 2つの枠の間に実線は引かないため、ここでy_currentが次のコンテンツの開始位置となる
 
     # 4行目: 入力データ
     start_x_issues = content_area_x + 1
     start_y_issues = y_current + 4.5 # コメント開始行を調整 (少し下げる)
+    start_x_issues = content_area_x + 1 
+    start_y_issues = y_current + 4.5 # コメント開始行を調整 (少し下げる) 
     text_w_issues = content_area_width - 2 # 左右パディング考慮
-
+ 
     # ダミーでmulti_cellを実行し、テキストが占める高さを取得
     pdf.set_xy(start_x_issues, start_y_issues)
     temp_y_before_issues = pdf.get_y()
