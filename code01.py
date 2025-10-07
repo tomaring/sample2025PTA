@@ -366,7 +366,7 @@ if st.button("**入力完了**", key="submit_button"):
         # PDF生成
         pdf_buffer = create_report_pdf(report_data)
 
-        st.success("PDFが生成されました！")
+        st.success("PDFが生成されました！確認できたら保存ボタンを押してください！")
         st.subheader("プレビュー")
 
         
@@ -407,7 +407,7 @@ if st.button("**入力完了**", key="submit_button"):
         final_wareki_year_tag = f"R{wareki_num}" if wareki_num else f"{report_date.year}" # 数字がなければ西暦を使用
 
         file_month = report_date.month
-        file_name = f"{final_wareki_year_tag}.{file_month:02d}育成会事業報告書_{selected_department}.pdf"
+        file_name = f"{final_wareki_year_tag}.{file_month:02d}事業報告書_{selected_department}.pdf"
 
         st.download_button(
             label="**PDFデータを保存**",
