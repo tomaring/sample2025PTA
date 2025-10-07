@@ -158,7 +158,7 @@ def create_report_pdf(data):
     # 3行目: 「活動の反省と課題」ヘッダー
     pdf.set_xy(content_area_x, y_current)
     header_text_line1 = "活動の反省と課題"
-     header_text_line2 = "(次年度以降の改善材料になりますので詳細にお願いします)"
+    header_text_line2 = "(次年度以降の改善材料になりますので詳細にお願いします)"
      
     # multi_cellで2行のテキストが占める高さを正確に計算
     # multi_cellで1行のテキストが占める高さを正確に計算 (header_text_line2のみ)
