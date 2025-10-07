@@ -175,14 +175,16 @@ def create_report_pdf(data):
     pdf.set_y(temp_y_before_header_calc) 
     
     # 2. ヘッダー枠全体の高さを決定
-    # 最小高は、2行テキストが無理なく収まる高さに設定。上下パディング9mmを確保。
-    header_box_padding = 9 # 上下4.5mm * 2
-    header_box_height = max(20, height_of_combined_header_text + header_box_padding) 
+    # 調整ポイント: 上下パディングを9mmから5mmに削減 (テキストを上に寄せ、枠の底も上げる)
+    header_box_padding = 5 # 上下2.5mm * 2 程度
+    # 最小高は、2行テキストが無理なく収まる高さに設定
+    header_box_height = max(16, height_of_combined_header_text + header_box_padding) # 最小高を20から16mmに調整 
     
     # 3. ヘッダー枠を描画
     pdf.rect(content_area_x, y_current, content_area_width, header_box_height) 
     
     # 4. テキストを枠内に配置 (垂直方向の中央揃え)
+    # 調整ポイント: パディング削減に伴い、開始Y座標も上にシフト
     text_y_start_for_header = y_current + (header_box_height - height_of_combined_header_text) / 2
     
     pdf.set_xy(content_area_x + 1, text_y_start_for_header)
