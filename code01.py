@@ -183,16 +183,16 @@ def create_report_pdf(data):
     # 3. ヘッダー枠を描画
     pdf.rect(content_area_x, y_current, content_area_width, header_box_height) 
     
-    # 4. テキストを枠内に配置 (垂直方向の中央揃え)
-    # 調整ポイント: パディング削減に伴い、開始Y座標も上にシフト
-    text_y_start_for_header = y_current + (header_box_height - height_of_combined_header_text) / 2
+    # 4. テキストを枠内に配置 (垂直方向の中央揃え + 補正)
+    # 調整ポイント: 計算結果から 1.5mm を差し引き、文字列全体を上に移動させる
+    text_y_start_for_header = y_current + (header_box_height - height_of_combined_header_text) / 2 - 1.5
     
     pdf.set_xy(content_area_x + 1, text_y_start_for_header)
     # h=5(目安)でmulti_cellを描画
     pdf.multi_cell(w=content_area_width - 2, h=5, txt=combined_header_text, align='C')
     
     y_current += header_box_height # このヘッダー枠の高さ分だけY座標を進める
-    
+
     # --- 入力データ (反省と課題のコメント欄) ---
     
     # 4行目: 入力データ
